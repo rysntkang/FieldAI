@@ -1,0 +1,22 @@
+{
+  "name": "fieldai",
+  "version": "1.0.0",
+  "description": "FYP Group31 Web Application",
+  "main": "server.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rysntkang/FieldAI.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/rysntkang/FieldAI/issues"
+  },
+  "homepage": "https://github.com/rysntkang/FieldAI#readme",
+  "dependencies": {
+    "express": "^4.21.1"
+  }
+}
