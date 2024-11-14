@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/rysntkang/FieldAI#readme",
   "dependencies": {
+    "@google-cloud/storage": "^7.14.0",
     "express": "^4.21.1"
   }
 }
