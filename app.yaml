@@ -1,8 +1,1 @@
-runtime: nodejs
-
-env: flex
-runtime_config:
-  operating_system: ubuntu22
-
-env_variables:
-  BUCKET_NAME: "fieldaibucket_145"
+runtime: nodejs22
