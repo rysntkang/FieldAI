@@ -1,24 +1,16 @@
 {
   "name": "fieldai",
   "version": "1.0.0",
-  "main": "server.js",
+  "description": "",
+  "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/rysntkang/FieldAI.git"
-  },
+  "keywords": [],
   "author": "",
   "license": "ISC",
-  "bugs": {
-    "url": "https://github.com/rysntkang/FieldAI/issues"
-  },
-  "homepage": "https://github.com/rysntkang/FieldAI#readme",
-  "description": "",
   "dependencies": {
-    "@google-cloud/storage": "^7.14.0",
-    "express": "^4.21.1",
-    "multer": "^1.4.5-lts.1"
+    "ejs": "^3.1.10",
+    "express": "^4.21.1"
   }
 }
