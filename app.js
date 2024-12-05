@@ -13,15 +13,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 
 // Routes
 app.get('/', (req, res) => {
-    res.render('index', { title: 'Features' , page: 'features'});
+    res.render('index', { title: 'Features' , page: 'landing/features'});
   });
   
 app.get('/pricing', (req, res) => {
-    res.render('index', { title: 'Pricing', page: 'pricing' });
+    res.render('index', { title: 'Pricing', page: 'landing/pricing' });
 });
 
 app.get('/about', (req, res) => {
-    res.render('index', { title: 'About', page: 'about' });
+    res.render('index', { title: 'About', page: 'landing/about' });
+});
+
+app.get('/login', (req, res) => {
+  res.render('index', { title: 'Login', page: 'login' });
+});
+
+app.get('/register', (req, res) => {
+  res.render('index', { title: 'Register', page: 'register' });
 });
 
   

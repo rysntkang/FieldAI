@@ -186,10 +186,22 @@
   line-height: 1.6;
 }
 
-/* Login Page Container */
+/* Login Page Layout */
 .login-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   text-align: center;
   padding: 20px;
+  gap: 20px;
+}
+
+.login-header {
+  font-size: 32px;
+  font-weight: bold;
+  color: #222;
+  margin: 0;
 }
 
 h1 {
@@ -198,7 +210,6 @@ h1 {
   color: #222;
 }
 
-/* Login Form Container */
 .login-container {
   background-color: #fff;
   border: 1px solid #ddd;
@@ -220,7 +231,6 @@ h1 {
   color: #555;
 }
 
-/* Login Form */
 .login-form {
   display: flex;
   flex-direction: column;
@@ -233,6 +243,100 @@ h1 {
 }
 
 .login-form input {
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  width: 100%;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.button-group button {
+  padding: 10px 20px;
+  font-size: 16px;
+  border: 1px solid #007BFF;
+  border-radius: 5px;
+  background-color: #007BFF;
+  color: white;
+  cursor: pointer;
+  flex: 1;
+}
+
+.button-group button:hover {
+  background-color: #0056b3;
+}
+
+button[type="button"] {
+  background-color: #6c757d;
+  border-color: #6c757d;
+}
+
+button[type="button"]:hover {
+  background-color: #5a6268;
+}
+
+/* Register Page Layout */
+.register-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  gap: 20px;
+}
+
+.register-header {
+  font-size: 32px;
+  font-weight: bold;
+  color: #222;
+  margin: 0;
+}
+
+h1 {
+  font-size: 24px;
+  margin-bottom: 20px;
+  color: #222;
+}
+
+.register-container {
+  background-color: #fff;
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 30px;
+  width: 400px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.register-container h2 {
+  font-size: 28px;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+.register-container p {
+  font-size: 16px;
+  margin-bottom: 20px;
+  color: #555;
+}
+
+.register-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.register-form label {
+  text-align: left;
+  font-weight: bold;
+}
+
+.register-form input {
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
