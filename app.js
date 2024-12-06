@@ -22,6 +22,12 @@ app.use(session({
   saveUninitialized: true,
 }));
 
+app.use((req, res, next) => {
+  console.log('Session Data:', req.session);
+  next();
+});
+
+
 // Temporary Placeholder for user array (PLEASE REMOVE ONCE IMPLEMENTED)
 let users = [
   { username: "testuser", password: "password123" } // Hardcoded user
