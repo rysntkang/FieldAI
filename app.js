@@ -2,9 +2,30 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const path = require('path');
 const session = require('express-session');
+const mysql = require('mysql2');
+const bcrypt = require('bcryptjs');
+const flash = require('connect-flash');
 
 const app = express();
 const PORT = 3000;
+
+const db = mysql.createConnection({
+  host: '35.240.234.235',  // Find this in the Cloud SQL console under 'Connections'
+  user: 'sqladmin',           // Set up a username in the Cloud SQL console
+  password: 'Slc223311',       // Replace with your MySQL user password
+  database: 'fieldaiDB',  // The database your teammate created
+  connectTimeout: 10000,
+  debug: true,
+});
+
+// Connect to the database
+db.connect((err) => {
+  if (err) {
+    console.error('Error connecting to MySQL:', err.message);
+    return;
+  }
+  console.log('Connected to MySQL database.');
+});
 
 // Set up EJS as the view engine
 app.set('view engine', 'ejs');
@@ -22,18 +43,20 @@ app.use(session({
   saveUninitialized: true,
 }));
 
+app.use(flash());
+
 // Temporary Placeholder for user array (PLEASE REMOVE ONCE IMPLEMENTED)
 let users = [
   { username: "testuser", password: "password123" } // Hardcoded user
 ];
 
 const isAuthenticated = (req, res, next) => {
-  if (!req.session || !req.session.username) {
-    // Redirect to login page without an error if the session is not set
+  if (!req.session || !req.session.user) {
     return res.redirect('/login');
   }
   next();
 };
+
 
 // Routes
 app.get('/', (req, res) => {
@@ -49,8 +72,9 @@ app.get('/about', (req, res) => {
 });
 
 app.get('/login', (req, res) => {
-  const error = req.query.error || null;
-  res.render('index', { title: 'Login', page: 'login', error });
+  const error = req.flash('error')
+  const success = req.flash('success');
+  res.render('index', { title: 'Login', page: 'login', error, success });
 });
 
 app.get('/register', (req, res) => {
@@ -59,52 +83,99 @@ app.get('/register', (req, res) => {
 
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
-  const user = users.find(u => u.username === username && u.password === password);
 
-  if (user) {
-    req.session.username = username;
-    res.redirect(`/${username}`);
-  } else {
-    res.redirect('/login?error=Invalid credentials');
-  }
+  // Look up the user in the database
+  db.query('SELECT * FROM useraccount WHERE username = ?', [username], async (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error occurred');
+    }
+
+    if (results.length === 0) {
+      req.flash('error', 'Invalid username or password');
+      return res.redirect('/login');
+    }
+
+    const user = results[0];
+
+    // Compare the hashed password using bcryptjs
+    const match = await bcrypt.compare(password, user.password);
+    if (!match) {
+      req.flash('error', 'Invalid username or password');
+      return res.redirect('/login');
+    }
+
+    // Set session or token
+    req.session.user = {
+      user_id: user.user_id,
+      email: user.email,
+      username: user.username,
+      role: user.role,
+    };
+    res.redirect(`/${user.username}`);
+  });
 });
 
-app.post('/register', (req, res) => {
-  const { username, password } = req.body;
-  const existingUser = users.find(u => u.username === username);
+app.post('/register', async (req, res) => {
+  const { email, username, password } = req.body;
 
-  if (existingUser) {
-    return res.redirect('/register?error=User already exists');
-  }
+  // Check if the username or email already exists
+  db.query(
+    'SELECT * FROM useraccount WHERE email = ? OR username = ?',
+    [email, username],
+    async (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Database error occurred');
+      }
 
-  users.push({ username, password });
-  res.redirect('/login?success=Registration successful');
+      if (results.length > 0) {
+        return res.status(400).send('Email or username already exists');
+      }
+
+      // Hash the password using bcryptjs
+      const saltRounds = 10;
+      const hashedPassword = await bcrypt.hash(password, saltRounds);
+
+      // Insert the new user into the database with the default role as "user"
+      const sql = 'INSERT INTO useraccount (email, username, password, role) VALUES (?, ?, ?, ?)';
+      db.query(sql, [email, username, hashedPassword, 'user'], (err, results) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Registration failed');
+        }
+
+        // Redirect to the login page with a success message
+        req.flash('success', 'Registration successful! Please log in.');
+        res.redirect('/login');
+      });
+    }
+  );
 });
+
 
 app.get('/home', isAuthenticated, (req, res) => {
-  if (req.session && req.session.username) {
-    return res.redirect(`/${req.session.username}`);
+  if (req.session && req.session.user) {
+    return res.redirect(`/${req.session.user.username}`);
   }
   res.redirect('/login');
 });
 
-
 app.get('/:username', isAuthenticated, (req, res) => {
   const username = req.params.username;
 
-  if (req.session.username !== username) {
-    // Redirect to login without appending unauthorized error
+  if (req.session.user.username !== username) {
     return res.redirect('/login');
   }
 
-  const user = users.find(u => u.username === username);
-  if (user) {
-    return res.render('user/user', { title: `Welcome, ${username}`, user });
-  }
-
-  res.status(404).send({ message: "User not found" });
+  db.query('SELECT * FROM useraccount WHERE username = ?', [username], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(404).send('User not found');
+    }
+    const user = results[0];
+    res.render('user/user', { title: `Welcome, ${username}`, user });
+  });
 });
-
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
