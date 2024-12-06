@@ -5,17 +5,29 @@ const session = require('express-session');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const flash = require('connect-flash');
+require('dotenv').config();
 
 const app = express();
 const PORT = 3000;
 
+const dbConfig = process.env.DB_HOST.includes('/cloudsql')
+  ? {   // Cloud SQL Configuration for Google Cloud
+      socketPath: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+    }
+  : {   // Local Development Configuration
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
+      port: process.env.DB_PORT || 3306,
+    };
+
 const db = mysql.createConnection({
-  host: '35.240.234.235',  // Find this in the Cloud SQL console under 'Connections'
-  user: 'sqladmin',           // Set up a username in the Cloud SQL console
-  password: 'Slc223311',       // Replace with your MySQL user password
-  database: 'fieldaiDB',  // The database your teammate created
-  connectTimeout: 10000,
-  debug: true,
+  ...dbConfig,
+  connectTimeout: 10000
 });
 
 // Connect to the database
