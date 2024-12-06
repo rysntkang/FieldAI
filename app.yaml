@@ -20,8 +20,8 @@ runtime_config:
 
 env_variables:
   GCLOUD_STORAGE_BUCKET: fieldai-443708.appspot.com
-  INSTANCE_UNIX_SOCKET: /cloudsql/<MY-PROJECT>:<INSTANCE-REGION>:<INSTANCE-NAME>
-  DB_USER: MY_DB_USER
-  DB_PASS: MY_DB_PASSWORD
-  DB_NAME: MY_DATABASE
+  INSTANCE_UNIX_SOCKET: /cloudsql/<fieldai-443708>:<asia-southeast1>:<fieldaisql>
+  DB_USER: root
+  DB_PASS: Slc223311
+  DB_NAME: fieldaiDB
 # [END gae_flex_storage_yaml]
