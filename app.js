@@ -124,7 +124,31 @@ app.post('/login', (req, res) => {
       username: user.username,
       role: user.role,
     };
-    res.redirect(`/${user.username}`);
+    res.redirect(`/home`);
+  });
+});
+
+app.get('/home', isAuthenticated, (req, res) => {
+  res.render('user/user', {
+    title: 'Home',
+    body: 'userhome',
+    user: req.session.user
+  });
+});
+
+app.get('/:username', isAuthenticated, (req, res) => {
+  const username = req.params.username;
+
+  if (req.session.user.username !== username) {
+    return res.redirect('/login');
+  }
+
+  db.query('SELECT * FROM useraccount WHERE username = ?', [username], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(404).send('User not found');
+    }
+    const user = results[0];
+    res.render('user/user', { title: `Welcome, ${username}`, user });
   });
 });
 
@@ -163,30 +187,6 @@ app.post('/register', async (req, res) => {
       });
     }
   );
-});
-
-
-app.get('/home', isAuthenticated, (req, res) => {
-  if (req.session && req.session.user) {
-    return res.redirect(`/${req.session.user.username}`);
-  }
-  res.redirect('/login');
-});
-
-app.get('/:username', isAuthenticated, (req, res) => {
-  const username = req.params.username;
-
-  if (req.session.user.username !== username) {
-    return res.redirect('/login');
-  }
-
-  db.query('SELECT * FROM useraccount WHERE username = ?', [username], (err, results) => {
-    if (err || results.length === 0) {
-      return res.status(404).send('User not found');
-    }
-    const user = results[0];
-    res.render('user/user', { title: `Welcome, ${username}`, user });
-  });
 });
 
 app.get('/logout', (req, res) => {
