@@ -6,13 +6,14 @@ const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const flash = require('connect-flash');
 require('dotenv').config();
+var MemcachedStore = require('connect-memcached')(session);
 
 const app = express();
-const PORT = 3000;
+const PORT = 8080;
 
-const dbConfig = process.env.DB_HOST.includes('/cloudsql')
+const dbConfig = process.env.INSTANCE_UNIX_SOCKET
   ? {   // Cloud SQL Configuration for Google Cloud
-      socketPath: process.env.DB_HOST,
+      socketPath: process.env.INSTANCE_UNIX_SOCKET,
       user: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
@@ -37,7 +38,7 @@ db.connect((err) => {
     return;
   }
   console.log('Connected to MySQL database.');
-});
+}); 
 
 // Set up EJS as the view engine
 app.set('view engine', 'ejs');
@@ -49,11 +50,23 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 
-app.use(session({
-  secret: 'secretkey', // Replace with a secure key
-  resave: false,
-  saveUninitialized: true,
-}));
+app.use(session(
+  //if appengine instance, use gcloud memcached
+  process.env.INSTANCE_UNIX_SOCKET ?{
+    secret: 'testsecret',
+    key: 'test',
+    proxy: 'true',
+    store: new MemcachedStore({
+        hosts: [process.env.MEMCACHE_URL || '10.25.128.3:11211']
+  })
+  }
+  :{
+  //if appengine not loaded, use local cache
+    secret: 'secretkey', // Replace with a secure key
+    resave: false,
+    saveUninitialized: true,
+  }
+));
 
 app.use(flash());
 
