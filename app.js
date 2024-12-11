@@ -19,11 +19,11 @@ const dbConfig = process.env.INSTANCE_UNIX_SOCKET
       database: process.env.DB_NAME,
     }
   : {   // Local Development Configuration
-      host: process.env.DB_HOST,
-      user: process.env.DB_USER,
-      password: process.env.DB_PASS,
-      database: process.env.DB_NAME,
-      port: process.env.DB_PORT || 3306,
+      host: process.env.DB_HOST || '127.0.0.1',
+      user: process.env.DB_USER || 'sqladmin',
+      password: process.env.DB_PASS || 'Slc223311',
+      database: process.env.DB_NAME ||'fieldaiDB',
+      port: process.env.DB_PORT || 3306
     };
 
 const db = mysql.createConnection({
@@ -75,19 +75,13 @@ app.use((req, res, next) => {
   next();
 });
 
-
-// Temporary Placeholder for user array (PLEASE REMOVE ONCE IMPLEMENTED)
-let users = [
-  { username: "testuser", password: "password123" } // Hardcoded user
-];
-
 const isAuthenticated = (req, res, next) => {
   if (!req.session || !req.session.user) {
     return res.redirect('/login');
   }
+  req.role = req.session.user.role; 
   next();
 };
-
 
 // Routes
 app.get('/', (req, res) => {
@@ -148,10 +142,27 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/home', isAuthenticated, (req, res) => {
+  if (req.role === 'admin') {
+    // Redirect admin users to the admin home page
+    return res.redirect('/admin/home');
+  }
+  // Redirect normal users to the user home page
+  return res.redirect('/user/home');
+});
+
+app.get('/user/home', isAuthenticated, (req, res) => {
   res.render('user/user', {
-    title: 'Home',
+    title: 'User Home',
     body: 'userhome',
-    user: req.session.user
+    user: req.session.user,
+  });
+});
+
+app.get('/admin/home', isAuthenticated, (req, res) => {
+  res.render('admin/admin', {
+    title: 'Admin Home',
+    body: 'adminhome',
+    user: req.session.user,
   });
 });
 

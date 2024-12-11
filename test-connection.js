@@ -1,7 +1,7 @@
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
-  host: '35.240.234.235', // Cloud SQL public IP
+  host: '127.0.0.1', // Cloud SQL public IP
   user: 'sqladmin',
   password: 'Slc223311', // Use a secure environment variable for sensitive info
   database: 'fieldaiDB',
