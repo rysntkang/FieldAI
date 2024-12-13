@@ -163,9 +163,9 @@ app.get('/admin/home', isAuthenticated, async (req, res) => {
     return res.redirect('/login');
   }
 
-  const query = 'SELECT user_id, username, role FROM useraccount';
+  const query = 'SELECT user_id, username, role FROM useraccount WHERE user_id != ?';
   try {
-    const [users] = await db.promise().query(query);
+    const [users] = await db.promise().query(query,[req.session.user.user_id]);
     res.render('admin/admin', {
       title: 'Admin Dashboard',
       body: 'adminhome',
