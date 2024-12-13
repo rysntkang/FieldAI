@@ -180,7 +180,10 @@ app.get('/admin/home', isAuthenticated, async (req, res) => {
 
 app.get('/admin/add-user', isAuthenticated, (req, res) => {
   if (req.role !== 'admin') return res.redirect('/login');
-  res.render('admin/adduser', { title: 'Add User' });
+  res.render('admin/admin', {
+    title: 'Add User',
+    body: 'admin-adduser',
+  });
 });
 
 app.post('/admin/add-user', isAuthenticated, async (req, res) => {

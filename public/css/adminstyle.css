@@ -176,3 +176,98 @@ button {
 button:hover {
   background-color: #ddd;
 }
+
+/* Unique styling for the Add User Page */
+.add-user-container {
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-user-container h2 {
+  text-align: center;
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.add-user-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.add-user-form div {
+  margin-bottom: 20px;
+}
+
+.add-user-form label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.add-user-form input, .add-user-form select {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.add-user-form input:focus, .add-user-form select:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+.add-user-form input[type="email"], .add-user-form input[type="text"], .add-user-form input[type="password"] {
+  margin-bottom: 10px;
+}
+
+.add-user-form select {
+  margin-bottom: 15px;
+}
+
+.add-user-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.add-user-actions button, .add-user-actions a {
+  padding: 12px 25px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #28a745;
+  text-decoration: none;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-user-actions button {
+  background-color: #007BFF;
+}
+
+.add-user-actions a {
+  background-color: #6c757d;
+}
+
+.add-user-actions button:hover {
+  background-color: #0056b3;
+}
+
+.add-user-actions a:hover {
+  background-color: #5a6268;
+}
+
+.add-user-actions button:focus, .add-user-actions a:focus {
+  outline: none;
+}
