@@ -21,7 +21,7 @@ function addUser() {
 
 function viewUser(userId) {
   if (userId) {
-    window.location.href = `/admin/view-user/${userId}`;
+    window.location.href = `/admin/admin-viewuser/${userId}`;
   } else {
     alert('Invalid user ID.');
   }

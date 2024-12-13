@@ -210,6 +210,29 @@ app.delete('/admin/delete-user/:id', isAuthenticated, (req, res) => {
   });
 });
 
+app.get('/admin/admin-viewuser/:id', isAuthenticated, (req, res) => {
+  const userId = req.params.id;
+
+  db.query('SELECT * FROM useraccount WHERE user_id = ?', [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error occurred');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('User not found');
+    }
+
+    const user = results[0];
+
+
+    res.render('admin/admin', {
+      title: 'View User',
+      body: 'admin-viewuser',
+      user: user,               
+    });
+  });
+});
 
 app.get('/:username', isAuthenticated, (req, res) => {
   const username = req.params.username;
