@@ -158,13 +158,58 @@ app.get('/user/home', isAuthenticated, (req, res) => {
   });
 });
 
-app.get('/admin/home', isAuthenticated, (req, res) => {
-  res.render('admin/admin', {
-    title: 'Admin Home',
-    body: 'adminhome',
-    user: req.session.user,
+app.get('/admin/home', isAuthenticated, async (req, res) => {
+  if (req.role !== 'admin') {
+    return res.redirect('/login');
+  }
+
+  const query = 'SELECT user_id, username, role FROM useraccount';
+  try {
+    const [users] = await db.promise().query(query);
+    res.render('admin/admin', {
+      title: 'Admin Dashboard',
+      body: 'adminhome',
+      users,
+      user: req.session.user, // Pass current session user for header/profile display
+    });
+  } catch (err) {
+    console.error('Error loading users:', err);
+    res.status(500).send('Error loading users');
+  }
+});
+
+app.get('/admin/add-user', isAuthenticated, (req, res) => {
+  if (req.role !== 'admin') return res.redirect('/login');
+  res.render('admin/adduser', { title: 'Add User' });
+});
+
+app.post('/admin/add-user', isAuthenticated, async (req, res) => {
+  const { username, role, email, password } = req.body;
+  const hashedPassword = await bcrypt.hash(password, 10);
+
+  const query = 'INSERT INTO useraccount (username, email, password, role) VALUES (?, ?, ?, ?)';
+  db.query(query, [username, email, hashedPassword, role], (err) => {
+    if (err) {
+      console.error('Error adding user:', err);
+      return res.status(500).send('Error adding user');
+    }
+    res.redirect('/admin/home');
   });
 });
+
+app.delete('/admin/delete-user/:id', isAuthenticated, (req, res) => {
+  if (req.role !== 'admin') return res.status(403).send({ success: false, message: 'Unauthorized' });
+
+  const userId = req.params.id;
+  db.query('DELETE FROM useraccount WHERE user_id = ?', [userId], (err) => {
+    if (err) {
+      console.error('Error deleting user:', err);
+      return res.status(500).send({ success: false, message: 'Error deleting user' });
+    }
+    res.send({ success: true });
+  });
+});
+
 
 app.get('/:username', isAuthenticated, (req, res) => {
   const username = req.params.username;

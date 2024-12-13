@@ -1,4 +1,38 @@
-<section class="home">
-    <h1>Welcome, <%= user.username %>!</h1>
-  </section>
-  
+<h2>Admin Dashboard</h2>
+<div class="user-management">
+  <div class="search-bar">
+    <input type="text" id="search" placeholder="Search by username..." />
+    <button onclick="addUser()">Add User</button>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (users && users.length === 0) { %>
+        <tr>
+          <td colspan="4">No users found.</td>
+        </tr>
+      <% } else { %>
+        <% users.forEach((user, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td><%= user.username %></td>
+            <td><%= user.role %></td>
+            <td>
+              <button onclick="viewUser('<%= user.user_id %>')">View</button>
+              <button onclick="deleteUser('<%= user.user_id %>')">Delete</button>
+            </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
+<script src="/js/adminScript.js"></script>

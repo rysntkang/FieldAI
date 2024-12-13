@@ -6,8 +6,10 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f9fa; /* Light gray background */
 }
 
 .logo-container {
@@ -48,94 +50,90 @@ main {
   text-align: center;
 }
 
-.dashboard {
-  padding: 20px;
-  max-width: 900px;
-  margin: auto;
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f5f5f5;
 }
 
-.welcome-section {
+h1, h2 {
   text-align: center;
-  margin-bottom: 20px;
 }
 
-.sectors-section .header {
+nav {
+  display: flex;
+  justify-content: center;
+  margin: 10px 0;
+  padding: 10px;
+  background-color: #333;
+  color: #fff;
+}
+
+nav a {
+  margin: 0 15px;
+  color: #fff;
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+.user-management {
+  max-width: 800px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar {
   display: flex;
   justify-content: space-between;
-  align-items: center;
   margin-bottom: 10px;
 }
 
-.add-sector-btn {
-  padding: 10px 20px;
-  background-color: #28a745;
-  color: white;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-
-.add-sector-btn:hover {
-  background-color: #218838;
-}
-
-.sectors-table {
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 10px;
-}
-
-.sector-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 0;
-}
-
-.sector-row:last-child {
-  border-bottom: none;
-}
-
-.sector-number {
-  font-size: 20px;
-  font-weight: bold;
-  margin-right: 10px;
-}
-
-.sector-info {
+.search-bar input {
   flex: 1;
+  padding: 5px;
+  margin-right: 5px;
 }
 
-.sector-actions {
-  display: flex;
-  gap: 10px;
+.search-bar button {
+  padding: 5px 10px;
+  margin-left: 5px;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 10px;
+}
+
+table, th, td {
+  border: 1px solid #ddd;
+}
+
+th, td {
+  padding: 10px;
+  text-align: center;
+}
+
+th {
+  background-color: #f9f9f9;
 }
 
 button {
-  padding: 8px 15px;
+  padding: 5px 10px;
+  background: #007bff;
+  color: white;
   border: none;
   border-radius: 5px;
-  font-size: 14px;
   cursor: pointer;
 }
 
-.view-btn {
-  background-color: #007BFF;
-  color: white;
-}
-
-.edit-btn {
-  background-color: #ffc107;
-  color: black;
-}
-
-.delete-btn {
-  background-color: #dc3545;
-  color: white;
-}
-
 button:hover {
-  opacity: 0.9;
+  background: #0056b3;
 }
-
