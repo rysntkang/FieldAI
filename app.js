@@ -142,7 +142,7 @@ app.post('/login', (req, res) => {
 });
 
 app.get('/home', isAuthenticated, (req, res) => {
-  if (req.role === 'admin') {
+  if (req.role === 'Admin') {
     // Redirect admin users to the admin home page
     return res.redirect('/admin/home');
   }
@@ -159,7 +159,7 @@ app.get('/user/home', isAuthenticated, (req, res) => {
 });
 
 app.get('/admin/home', isAuthenticated, async (req, res) => {
-  if (req.role !== 'admin') {
+  if (req.role !== 'Admin') {
     return res.redirect('/login');
   }
 
@@ -170,7 +170,7 @@ app.get('/admin/home', isAuthenticated, async (req, res) => {
       title: 'Admin Dashboard',
       body: 'adminhome',
       users,
-      user: req.session.user, // Pass current session user for header/profile display
+      user: req.session.user,
     });
   } catch (err) {
     console.error('Error loading users:', err);
@@ -179,7 +179,7 @@ app.get('/admin/home', isAuthenticated, async (req, res) => {
 });
 
 app.get('/admin/add-user', isAuthenticated, (req, res) => {
-  if (req.role !== 'admin') return res.redirect('/login');
+  if (req.role !== 'Admin') return res.redirect('/login');
   res.render('admin/admin', {
     title: 'Add User',
     body: 'admin-adduser',
@@ -201,7 +201,7 @@ app.post('/admin/add-user', isAuthenticated, async (req, res) => {
 });
 
 app.delete('/admin/delete-user/:id', isAuthenticated, (req, res) => {
-  if (req.role !== 'admin') return res.status(403).send({ success: false, message: 'Unauthorized' });
+  if (req.role !== 'Admin') return res.status(403).send({ success: false, message: 'Unauthorized' });
 
   const userId = req.params.id;
   db.query('DELETE FROM useraccount WHERE user_id = ?', [userId], (err) => {
@@ -236,6 +236,55 @@ app.get('/admin/admin-viewuser/:id', isAuthenticated, (req, res) => {
     });
   });
 });
+
+app.get('/admin/edit-user/:id', isAuthenticated, (req, res) => {
+  const userId = req.params.id;
+
+  db.query('SELECT * FROM useraccount WHERE user_id = ?', [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error occurred');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('User not found');
+    }
+
+    const user = results[0];
+    db.query('SELECT DISTINCT role FROM useraccount', (err, rolesResults) => {
+      if (err) {
+        console.log('Error fetching roles:', err);
+        return res.status(500).send('Error fetching roles');
+      }
+
+      const roles = rolesResults.map(role => role.role);
+
+      res.render('admin/admin', {
+        title: 'Edit User Page',
+        body: 'admin-edituser',
+        user: user,
+        roles: roles
+      });
+    })
+  });
+});
+
+app.post('/admin/edit-user/:id', isAuthenticated, (req, res) => {
+  const userId = req.params.id;
+  const { email, username, role } = req.body;
+
+  db.query('UPDATE useraccount SET email = ?, username = ?, role = ? WHERE user_id = ?', 
+    [email, username, role, userId],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error updating user data.');
+      }
+    });
+
+    res.redirect(`/admin/admin-viewuser/${userId}`);
+});
+
 
 app.get('/:username', isAuthenticated, (req, res) => {
   const username = req.params.username;
