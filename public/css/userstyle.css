@@ -6,8 +6,10 @@
 }
 
 body {
-  font-family: Arial, sans-serif;
-  line-height: 1.6;
+  font-family: 'Arial', sans-serif;
+  margin: 0;
+  padding: 0;
+  background-color: #f8f9fa;/
 }
 
 .logo-container {
@@ -48,7 +50,6 @@ main {
   text-align: center;
 }
 
-/* User Sectors Dashboard Styling */
 .user-sectors-dashboard {
   max-width: 800px;
   margin: 20px auto;
