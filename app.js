@@ -417,8 +417,6 @@ app.post('/edit-sector/:id', isAuthenticated, (req, res) => {
   });
 });
 
-
-
 app.delete('/user/delete-sector/:id', isAuthenticated, (req, res) => {
   const sector_id = req.params.id;
   db.query('DELETE FROM farmsector WHERE sector_id = ?', [sector_id], (err) => {
@@ -427,6 +425,30 @@ app.delete('/user/delete-sector/:id', isAuthenticated, (req, res) => {
       return res.status(500).send({ success: false, message: 'Error deleting sector' });
     }
     res.send({ success: true });
+  });
+});
+
+app.get('/user/user-viewsector/:id', isAuthenticated, (req, res) => {
+  const sectorId = req.params.id;
+
+  db.query('SELECT * FROM farmsector WHERE sector_id = ?', [sectorId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error occurred');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('Sector not found');
+    }
+
+    const sector = results[0];
+
+
+    res.render('user/user', {
+      title: 'View Sector',
+      body: 'user-viewsector',
+      sector: sector,               
+    });
   });
 });
 

@@ -82,3 +82,11 @@ function deleteSector(sector_Id) {
       });
   }
 }
+
+function viewSector(sectorId) {
+  if (sectorId) {
+    window.location.href = `/user/user-viewsector/${sectorId}`;
+  } else {
+    alert('Invalid sector ID');
+  }
+}
