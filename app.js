@@ -71,17 +71,18 @@ app.use(session(
 app.use(flash());
 
 app.use((req, res, next) => {
-  console.log('Session Data:', req.session);
   next();
 });
 
 const isAuthenticated = (req, res, next) => {
   if (!req.session || !req.session.user) {
+    console.log('Unauthenticated access. Session data:', req.session);
     return res.redirect('/login');
   }
-  req.role = req.session.user.role; 
+  req.role = req.session.user.role;
   next();
 };
+
 
 // Routes
 app.get('/', (req, res) => {
@@ -109,37 +110,42 @@ app.get('/register', (req, res) => {
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  // Look up the user in the database
   db.query('SELECT * FROM useraccount WHERE username = ?', [username], async (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).send('Database error occurred');
     }
-
     if (results.length === 0) {
       req.flash('error', 'Invalid username or password');
       return res.redirect('/login');
     }
 
     const user = results[0];
-
-    // Compare the hashed password using bcryptjs
     const match = await bcrypt.compare(password, user.password);
+
     if (!match) {
       req.flash('error', 'Invalid username or password');
       return res.redirect('/login');
     }
 
-    // Set session or token
     req.session.user = {
       user_id: user.user_id,
       email: user.email,
       username: user.username,
       role: user.role,
     };
-    res.redirect(`/home`);
+    console.log('Session initialized:', req.session.user);
+
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.redirect('/login');
+      }
+      res.redirect(`/home`);
+    });
   });
 });
+
 
 app.get('/home', isAuthenticated, (req, res) => {
   if (req.role === 'Admin') {
@@ -301,23 +307,6 @@ app.post('/admin/edit-user/:id', isAuthenticated, (req, res) => {
     res.redirect(`/admin/admin-viewuser/${userId}`);
 });
 
-
-app.get('/:username', isAuthenticated, (req, res) => {
-  const username = req.params.username;
-
-  if (req.session.user.username !== username) {
-    return res.redirect('/login');
-  }
-
-  db.query('SELECT * FROM useraccount WHERE username = ?', [username], (err, results) => {
-    if (err || results.length === 0) {
-      return res.status(404).send('User not found');
-    }
-    const user = results[0];
-    res.render('user/user', { title: `Welcome, ${username}`, user });
-  });
-});
-
 app.post('/register', async (req, res) => {
   const { email, username, password } = req.body;
 
@@ -353,6 +342,30 @@ app.post('/register', async (req, res) => {
       });
     }
   );
+});
+
+app.get('/user/user-viewaccount', isAuthenticated, (req, res) => {
+  const userId = req.session.user.user_id;
+
+  db.query('SELECT * FROM useraccount WHERE user_id = ?', [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error occurred');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('User not found');
+    }
+
+    const user = results[0];
+
+
+    res.render('user/user', {
+      title: 'View User',
+      body: 'user-viewaccount',
+      user: user,               
+    });
+  });
 });
 
 app.post("/add-sector", (req, res) => {
@@ -460,6 +473,18 @@ app.get('/logout', (req, res) => {
       return res.redirect('/login?error=Logout failed');
     }
     res.redirect('/login?success=You have logged out successfully');
+  });
+});
+
+app.get('/:username', isAuthenticated, (req, res) => {
+  const username = req.params.username;
+
+  db.query('SELECT * FROM useraccount WHERE username = ?', [username], (err, results) => {
+    if (err || results.length === 0) {
+      return res.status(404).send('User not found');
+    }
+    const user = results[0];
+    res.render('user/user', { title: `Welcome, ${username}`, user });
   });
 });
 
