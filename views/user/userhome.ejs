@@ -54,9 +54,9 @@
 
 <div id="overlay" class="overlay" style="display: none;"></div>
 
-<div id="addSectorModal" class="add-user-container" style="display: none;">
+<div id="addSectorModal" class="add-sector-container" style="display: none;">
   <h2>Add Sector</h2>
-  <form id="addSectorForm" class="add-user-form" method="POST" action="/add-sector">
+  <form id="addSectorForm" class="add-sector-form" method="POST" action="/add-sector">
     <div>
       <label for="sector_name">Sector Name:</label>
       <input type="text" id="sector_name" name="sector_name" placeholder="Enter sector name" required>
@@ -65,7 +65,7 @@
       <label for="description">Description:</label>
       <textarea id="description" name="description" placeholder="Enter sector description" required></textarea>
     </div>
-    <div class="add-user-actions">
+    <div class="add-sector-actions">
       <button type="submit">Save</button>
       <button type="button" id="closeModal" class="back-btn">Cancel</button>
     </div>

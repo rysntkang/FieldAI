@@ -382,6 +382,17 @@ app.post("/add-sector", (req, res) => {
   });
 });
 
+app.delete('/user/delete-sector/:id', isAuthenticated, (req, res) => {
+  const sector_id = req.params.id;
+  db.query('DELETE FROM farmsector WHERE sector_id = ?', [sector_id], (err) => {
+    if (err) {
+      console.error('Error deleting sector:', err);
+      return res.status(500).send({ success: false, message: 'Error deleting sector' });
+    }
+    res.send({ success: true });
+  });
+});
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
