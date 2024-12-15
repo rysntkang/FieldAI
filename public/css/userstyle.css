@@ -59,13 +59,13 @@ main {
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.add-sector-button {
+.user-sectors-top {
   display: flex;
   justify-content: flex-end;
   margin-bottom: 15px;
 }
 
-.add-sector-button button {
+.user-sectors-top button {
   padding: 8px 12px;
   background-color: #28a745;
   color: #fff;
