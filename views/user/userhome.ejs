@@ -42,7 +42,7 @@
             <td><%= sector.description || '-' %></td>
             <td>
               <button class="view-btn" onclick="window.location.href='/sector/view/<%= sector.sector_id %>'">View</button>
-              <button class="edit-btn" onclick="window.location.href='/sector/edit/<%= sector.sector_id %>'">Edit</button>
+              <button class="edit-btn" data-sector-id="<%= sector.sector_id %>" onclick="editSector(<%= sector.sector_id %>)">Edit</button>
               <button class="delete-btn" onclick="deleteSector('<%= sector.sector_id %>')">Delete</button>
             </td>
           </tr>
@@ -67,7 +67,25 @@
     </div>
     <div class="add-sector-actions">
       <button type="submit">Save</button>
-      <button type="button" id="closeModal" class="back-btn">Cancel</button>
+      <button type="button" id="closeAddModal" class="back-btn">Cancel</button>
+    </div>
+  </form>
+</div>
+
+<div id="editSectorModal" class="edit-sector-container" style="display: none;">
+  <h2>Edit Sector</h2>
+  <form id="editSectorForm" class="edit-sector-form" method="POST" action="/edit-sector">
+    <div>
+      <label for="sector_name">Sector Name:</label>
+      <input type="text" id="sector_name" name="sector_name" placeholder="Edit sector name" required>
+    </div>
+    <div>
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" placeholder="Edit sector description" required></textarea>
+    </div>
+    <div class="edit-sector-actions">
+      <button type="submit">Edit</button>
+      <button type="button" id="closeEditModal" class="back-btn">Cancel</button>
     </div>
   </form>
 </div>

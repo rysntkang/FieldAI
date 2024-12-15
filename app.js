@@ -379,8 +379,27 @@ app.post("/add-sector", (req, res) => {
   );
 });
 
-app.post('/edit-sector', (req, res) => {
-  const { sectorId, sectorName, sectorDescription } = req.body;
+app.get('/user/get-sector/:id', isAuthenticated, (req, res) => {
+  const sectorId = req.params.id;
+
+  db.query('SELECT * FROM farmsector WHERE sector_id = ?', [sectorId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send({ success: false, message: 'Database error occurred' });
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send({ success: false, message: 'Sector not found' });
+    }
+
+    const sector = results[0];
+    res.json({ success: true, sector });
+  });
+});
+
+app.post('/edit-sector/:id', isAuthenticated, (req, res) => {
+  const sectorId = req.params.id;
+  const { sector_name, description } = req.body;
 
   const query = `
     UPDATE farmsector 
@@ -388,14 +407,16 @@ app.post('/edit-sector', (req, res) => {
     WHERE sector_id = ?
   `;
 
-  db.query(query, [sectorName, sectorDescription, sectorId], (err, result) => {
+  db.query(query, [sector_name, description, sectorId], (err, result) => {
     if (err) {
       console.error(err);
       return res.json({ success: false });
     }
-    res.json({ success: true });
+    req.flash("success", "Sector updated successfully!");
+    res.redirect(`/user/home`);
   });
 });
+
 
 
 app.delete('/user/delete-sector/:id', isAuthenticated, (req, res) => {
