@@ -24,25 +24,26 @@ setTimeout(function() {
     });
 }, 5000);
 
+
+
 function deleteSector(sector_Id) {
   if (sector_Id && confirm('Are you sure you want to delete this sector?')) {
+    const deleteBtn = document.querySelector(`button[data-sector-id="${sector_Id}"]`);
+    deleteBtn.innerHTML = "Deleting...";
     fetch(`/user/delete-sector/${sector_Id}`, { method: 'DELETE' })
-      .then(res => {
-        if (!res.ok) {
-          throw new Error('Network response was not ok');
-        }
-        return res.json();
-      })
+      .then(res => res.json())
       .then(data => {
         if (data.success) {
           alert('Sector deleted successfully');
           location.reload();
         } else {
+          deleteBtn.innerHTML = "Delete";
           alert('Failed to delete sector: ' + (data.message || 'Unknown error'));
         }
       })
       .catch(error => {
         console.error('Error during fetch:', error);
+        deleteBtn.innerHTML = "Delete";
         alert('An error occurred while deleting the user. Please try again.');
       });
   }

@@ -358,29 +358,45 @@ app.post('/register', async (req, res) => {
 app.post("/add-sector", (req, res) => {
   const { sector_name, description } = req.body;
 
-  const user_id = req.session.user?.user_id;
-
-  if (!sector_name || !description) {
-    req.flash("error", "All fields are required.");
+  if (!sector_name || !description || sector_name.length > 50 || description.length > 255) {
+    req.flash("error", "Invalid input. Please ensure all fields are filled correctly.");
     return res.redirect("/user/home");
   }
 
-  if (!user_id) {
-    req.flash("error", "User not authenticated.");
-    return res.redirect("/login");
-  }
+  const user_id = req.session.user?.user_id;
 
-  const query = "INSERT INTO farmsector (sector_name, user_id, description) VALUES (?, ?, ?)";
-  db.query(query, [sector_name, user_id, description], (err, result) => {
+  db.query("INSERT INTO farmsector (sector_name, user_id, description) VALUES (?, ?, ?)", 
+    [sector_name.trim(), user_id, description.trim()],
+    (err) => {
+      if (err) {
+        console.error(err);
+        req.flash("error", "Failed to add sector.");
+        return res.redirect("/user/home");
+      }
+      req.flash("success", "Sector added successfully!");
+      res.redirect("/user/home");
+    }
+  );
+});
+
+app.post('/edit-sector', (req, res) => {
+  const { sectorId, sectorName, sectorDescription } = req.body;
+
+  const query = `
+    UPDATE farmsector 
+    SET sector_name = ?, description = ? 
+    WHERE sector_id = ?
+  `;
+
+  db.query(query, [sectorName, sectorDescription, sectorId], (err, result) => {
     if (err) {
       console.error(err);
-      req.flash("error", "Failed to add sector.");
-      return res.redirect("/user/home");
+      return res.json({ success: false });
     }
-    req.flash("success", "Sector added successfully!");
-    res.redirect("/user/home");
+    res.json({ success: true });
   });
 });
+
 
 app.delete('/user/delete-sector/:id', isAuthenticated, (req, res) => {
   const sector_id = req.params.id;
