@@ -151,10 +151,23 @@ app.get('/home', isAuthenticated, (req, res) => {
 });
 
 app.get('/user/home', isAuthenticated, (req, res) => {
-  res.render('user/user', {
-    title: 'User Home',
-    body: 'userhome',
-    user: req.session.user,
+  const query = 'SELECT sector_id, sector_name, description FROM farmsector WHERE user_id = ?';
+  
+  db.query(query, [req.session.user.user_id], (err, results) => {
+    if (err) {
+      console.error('Error fetching sectors:', err);
+      return res.status(500).send('Something went wrong while fetching sectors.');
+    }
+
+    // Ensure sectors is always an array (even if no sectors exist)
+    const sectors = results.length > 0 ? results : [];
+
+    res.render('user/user', {
+      title: 'User Home',
+      body: 'userhome',
+      user: req.session.user,
+      sectors: sectors,
+    });
   });
 });
 

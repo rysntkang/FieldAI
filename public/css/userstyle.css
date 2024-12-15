@@ -48,94 +48,91 @@ main {
   text-align: center;
 }
 
-.dashboard {
+/* User Sectors Dashboard Styling */
+.user-sectors-dashboard {
+  max-width: 800px;
+  margin: 20px auto;
+  background: #fff;
   padding: 20px;
-  max-width: 900px;
-  margin: auto;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-.welcome-section {
-  text-align: center;
-  margin-bottom: 20px;
-}
-
-.sectors-section .header {
+.add-sector-button {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
+  justify-content: flex-end;
+  margin-bottom: 15px;
 }
 
-.add-sector-btn {
-  padding: 10px 20px;
+.add-sector-button button {
+  padding: 8px 12px;
   background-color: #28a745;
-  color: white;
+  color: #fff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-.add-sector-btn:hover {
+.add-sector-button button:hover {
   background-color: #218838;
 }
 
-.sectors-table {
+.user-sectors-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-sectors-table th,
+.user-sectors-table td {
   border: 1px solid #ddd;
-  border-radius: 5px;
   padding: 10px;
+  text-align: center;
 }
 
-.sector-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #ddd;
-  padding: 10px 0;
-}
-
-.sector-row:last-child {
-  border-bottom: none;
-}
-
-.sector-number {
-  font-size: 20px;
+.user-sectors-table th {
+  background-color: #f8f9fa;
   font-weight: bold;
-  margin-right: 10px;
 }
 
-.sector-info {
-  flex: 1;
+.no-sectors-message {
+  text-align: center;
+  font-size: 16px;
+  color: #777;
 }
 
-.sector-actions {
-  display: flex;
-  gap: 10px;
-}
-
-button {
-  padding: 8px 15px;
+.view-btn,
+.edit-btn,
+.delete-btn {
+  padding: 5px 10px;
   border: none;
   border-radius: 5px;
-  font-size: 14px;
+  color: white;
   cursor: pointer;
+  margin: 2px;
+  transition: background-color 0.3s ease;
 }
 
 .view-btn {
-  background-color: #007BFF;
-  color: white;
+  background-color: #007bff;
 }
 
 .edit-btn {
   background-color: #ffc107;
-  color: black;
 }
 
 .delete-btn {
   background-color: #dc3545;
-  color: white;
 }
 
-button:hover {
-  opacity: 0.9;
+.view-btn:hover {
+  background-color: #0056b3;
 }
 
+.edit-btn:hover {
+  background-color: #e0a800;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
