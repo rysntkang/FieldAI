@@ -124,19 +124,32 @@ th {
   background-color: #f9f9f9;
 }
 
-button {
+.view-btn,
+.edit-btn,
+.delete-btn {
   padding: 5px 10px;
-  background: #007bff;
-  color: white;
   border: none;
   border-radius: 5px;
+  color: white;
   cursor: pointer;
+  transition: background-color 0.3s ease;
 }
 
-button:hover {
-  background: #0056b3;
+.view-btn {
+  background-color: #007bff;
 }
 
+.delete-btn {
+  background-color: #dc3545;
+}
+
+.view-btn:hover {
+  background-color: #0056b3;
+}
+
+.delete-btn:hover {
+  background-color: #c82333;
+}
 
 .container {
   width: 50%;

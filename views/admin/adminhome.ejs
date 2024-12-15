@@ -28,8 +28,8 @@
             <td><%= user.username %></td>
             <td><%= user.role %></td>
             <td>
-              <button onclick="window.location.href='/admin/admin-viewuser/<%= user.user_id %>'">View</button>
-              <button onclick="deleteUser('<%= user.user_id %>')">Delete</button>
+              <button class="view-btn" onclick="window.location.href='/admin/admin-viewuser/<%= user.user_id %>'">View</button>
+              <button class="delete-btn" onclick="deleteUser('<%= user.user_id %>')">Delete</button>
             </td>
           </tr>
         <% }) %>
