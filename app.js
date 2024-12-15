@@ -151,6 +151,8 @@ app.get('/home', isAuthenticated, (req, res) => {
 });
 
 app.get('/user/home', isAuthenticated, (req, res) => {
+  const success = req.flash('success');
+  const error = req.flash('error');
   const query = 'SELECT sector_id, sector_name, description FROM farmsector WHERE user_id = ?';
   
   db.query(query, [req.session.user.user_id], (err, results) => {
@@ -159,7 +161,6 @@ app.get('/user/home', isAuthenticated, (req, res) => {
       return res.status(500).send('Something went wrong while fetching sectors.');
     }
 
-    // Ensure sectors is always an array (even if no sectors exist)
     const sectors = results.length > 0 ? results : [];
 
     res.render('user/user', {
@@ -167,6 +168,8 @@ app.get('/user/home', isAuthenticated, (req, res) => {
       body: 'userhome',
       user: req.session.user,
       sectors: sectors,
+      success: success,
+      error: error
     });
   });
 });
@@ -352,13 +355,41 @@ app.post('/register', async (req, res) => {
   );
 });
 
+app.post("/add-sector", (req, res) => {
+  const { sector_name, description } = req.body;
+
+  const user_id = req.session.user?.user_id;
+
+  if (!sector_name || !description) {
+    req.flash("error", "All fields are required.");
+    return res.redirect("/user/home");
+  }
+
+  if (!user_id) {
+    req.flash("error", "User not authenticated.");
+    return res.redirect("/login");
+  }
+
+  const query = "INSERT INTO farmsector (sector_name, user_id, description) VALUES (?, ?, ?)";
+  db.query(query, [sector_name, user_id, description], (err, result) => {
+    if (err) {
+      console.error(err);
+      req.flash("error", "Failed to add sector.");
+      return res.redirect("/user/home");
+    }
+    req.flash("success", "Sector added successfully!");
+    res.redirect("/user/home");
+  });
+});
+
+
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
     if (err) {
       console.error('Failed to destroy session:', err);
-      return res.redirect('/login?error=Logout failed'); // Only use error for actual failures
+      return res.redirect('/login?error=Logout failed');
     }
-    res.redirect('/login?success=You have logged out successfully'); // Provide a success message
+    res.redirect('/login?success=You have logged out successfully');
   });
 });
 

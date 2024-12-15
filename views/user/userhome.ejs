@@ -1,8 +1,20 @@
 <h2>Sector Dashboard</h2>
 
+<% if (success && success.length > 0) { %>
+  <div class="flash-message success">
+    <p><%= success[0] %></p>
+  </div>
+<% } %>
+<% if (error && error.length > 0) { %>
+  <div class="flash-message error">
+    <p><%= error[0] %></p>
+  </div>
+<% } %>
+
 <div class="user-sectors-dashboard">
   <div class="user-sectors-top">
-    <button onclick="window.location.href='/sector/create'">Add Sector</button>
+    <!-- Button to open the Add Sector Modal -->
+    <button id="addSectorBtn" class="btn btn-primary">Add Sector</button>
   </div>
 
   <table class="user-sectors-table">
@@ -38,4 +50,24 @@
       <% } %>
     </tbody>
   </table>
+</div>
+
+<div id="overlay" class="overlay" style="display: none;"></div>
+
+<div id="addSectorModal" class="add-user-container" style="display: none;">
+  <h2>Add Sector</h2>
+  <form id="addSectorForm" class="add-user-form" method="POST" action="/add-sector">
+    <div>
+      <label for="sector_name">Sector Name:</label>
+      <input type="text" id="sector_name" name="sector_name" placeholder="Enter sector name" required>
+    </div>
+    <div>
+      <label for="description">Description:</label>
+      <textarea id="description" name="description" placeholder="Enter sector description" required></textarea>
+    </div>
+    <div class="add-user-actions">
+      <button type="submit">Save</button>
+      <button type="button" id="closeModal" class="back-btn">Cancel</button>
+    </div>
+  </form>
 </div>
