@@ -361,7 +361,7 @@ app.get('/user/user-viewaccount', isAuthenticated, (req, res) => {
 
 
     res.render('user/user', {
-      title: 'View User',
+      title: 'Account',
       body: 'user-viewaccount',
       user: user,               
     });
