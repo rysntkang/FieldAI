@@ -1,0 +1,27 @@
+<div class="add-batch-container">
+
+    <form class="add-batch-form" action="/user/add-batch" method="POST">
+      
+      <div>
+        <label for="name">Batch Name</label>
+        <input id="name" name="name" placeholder="Enter batch name" required>
+      </div>
+
+      <div>
+        <label for="images">Upload Images</label>
+        <input
+          type="file"
+          id="images"
+          name="images"
+          multiple
+          accept="image/*"
+          required
+        />
+      </div>
+
+      <div class="add-batch-actions">
+        <button type="submit">Run</button>
+        <a onclick="window.location.href='/user/user-viewsector/<%= sectorid %>'" class="back-btn">Back</a>
+      </div>
+    </form>
+</div>

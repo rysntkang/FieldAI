@@ -248,3 +248,142 @@ button {
 button:hover {
   background-color: #ddd;
 }
+
+.user-batch-dashboard {
+  max-width: 800px;
+  margin: 20px auto;
+  background: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.user-batch-top {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 15px;
+}
+
+.user-batch-top button {
+  padding: 8px 12px;
+  background-color: #28a745;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.user-batch-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.user-batch-table th,
+.user-batch-table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+.user-batch-table th {
+  background-color: #f8f9fa;
+  font-weight: bold;
+}
+
+.no-batch-message {
+  text-align: center;
+  font-size: 16px;
+  color: #777;
+}
+
+
+.add-batch-container {
+  max-width: 700px;
+  margin: 30px auto;
+  padding: 20px;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  background-color: #f9f9f9;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.add-batch-container h2 {
+  text-align: center;
+  font-size: 28px;
+  color: #333;
+  margin-bottom: 20px;
+}
+
+.add-batch-form {
+  display: flex;
+  flex-direction: column;
+}
+
+.add-batch-form div {
+  margin-bottom: 20px;
+}
+
+.add-batch-form label {
+  font-size: 16px;
+  font-weight: bold;
+  color: #555;
+  margin-bottom: 8px;
+}
+
+.add-batch-form input, .add-batch-form select {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #ddd;
+  border-radius: 5px;
+  background-color: #fff;
+  box-sizing: border-box;
+}
+
+.add-batch-form input:focus, .add-batch-form select:focus {
+  border-color: #007BFF;
+  outline: none;
+}
+
+.add-batch-form select {
+  margin-bottom: 15px;
+}
+
+.add-batch-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.add-batch-actions button, .add-batch-actions a {
+  padding: 12px 25px;
+  font-size: 16px;
+  color: #fff;
+  background-color: #28a745;
+  text-decoration: none;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.add-batch-actions button {
+  background-color: #007BFF;
+}
+
+.add-batch-actions a {
+  background-color: #6c757d;
+}
+
+.add-batch-actions button:hover {
+  background-color: #0056b3;
+}
+
+.add-batch-actions a:hover {
+  background-color: #5a6268;
+}
+
+.add-batch-actions button:focus, .add-batch-actions a:focus {
+  outline: none;
+}

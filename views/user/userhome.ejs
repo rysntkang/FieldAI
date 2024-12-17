@@ -41,7 +41,7 @@
             <td>
               <button class="view-btn" onclick="window.location.href='/user/user-viewsector/<%= sector.sector_id %>'">View</button>
               <button class="edit-btn" data-sector-id="<%= sector.sector_id %>" onclick="editSector('<%= sector.sector_id %>')">Edit</button>
-              <button class="delete-btn" onclick="deleteSector('<%= sector.sector_id %>')">Delete</button>
+              <button class="delete-btn" data-sector-id="<%= sector.sector_id %>" onclick="deleteSector('<%= sector.sector_id %>')">Delete</button>
             </td>
           </tr>
         <% }) %>

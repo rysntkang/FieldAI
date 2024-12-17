@@ -5,6 +5,7 @@ const session = require('express-session');
 const mysql = require('mysql2');
 const bcrypt = require('bcryptjs');
 const flash = require('connect-flash');
+const multer = require('multer');
 require('dotenv').config();
 var MemcachedStore = require('connect-memcached')(session);
 
@@ -310,7 +311,6 @@ app.post('/admin/edit-user/:id', isAuthenticated, (req, res) => {
 app.post('/register', async (req, res) => {
   const { email, username, password } = req.body;
 
-  // Check if the username or email already exists
   db.query(
     'SELECT * FROM useraccount WHERE email = ? OR username = ?',
     [email, username],
@@ -324,11 +324,9 @@ app.post('/register', async (req, res) => {
         return res.status(400).send('Email or username already exists');
       }
 
-      // Hash the password using bcryptjs
       const saltRounds = 10;
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
-      // Insert the new user into the database with the default role as "user"
       const sql = 'INSERT INTO useraccount (email, username, password, role) VALUES (?, ?, ?, ?)';
       db.query(sql, [email, username, hashedPassword, 'user'], (err, results) => {
         if (err) {
@@ -336,7 +334,6 @@ app.post('/register', async (req, res) => {
           return res.status(500).send('Registration failed');
         }
 
-        // Redirect to the login page with a success message
         req.flash('success', 'Registration successful! Please log in.');
         res.redirect('/login');
       });
@@ -456,15 +453,42 @@ app.get('/user/user-viewsector/:id', isAuthenticated, (req, res) => {
 
     const sector = results[0];
 
+    db.query('SELECT * FROM batch WHERE sector_id = ?', [sectorId], (err, result) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Database error occurred');
+      }
 
-    res.render('user/user', {
-      title: 'View Sector',
-      body: 'user-viewsector',
-      sector: sector,               
-    });
+
+      const batches = result.length > 0 ? result: [];
+
+      res.render('user/user', {
+        title: 'View Sector',
+        body: 'user-viewsector',
+        sector: sector,    
+        batches: batches,           
+      });
+
+    })
   });
 });
 
+app.get('/user/add-batch/:id', isAuthenticated, (req, res) => {
+  const sectorId = req.params.id;
+  
+  res.render('user/user', {
+    title: 'Create Batch',
+    body: 'user-addbatch',
+    sectorid: sectorId,
+  });
+});
+
+//ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
+function mockMLProcessing(filePath) {
+  const tasselCount = Math.floor(Math.random() * 100) + 1; // Random count
+  console.log(`Mock ML Processing: ${filePath} - Tassel Count: ${tasselCount}`);
+  return tasselCount;
+}
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {

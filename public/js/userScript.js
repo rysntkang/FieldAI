@@ -60,28 +60,27 @@ setTimeout(function() {
     });
 }, 5000);
 
-function deleteSector(sector_Id) {
-  if (sector_Id && confirm('Are you sure you want to delete this sector?')) {
-    const deleteBtn = document.querySelector(`button[data-sector-id="${sector_Id}"]`);
-    deleteBtn.innerHTML = "Deleting...";
-    fetch(`/user/delete-sector/${sector_Id}`, { method: 'DELETE' })
-      .then(res => res.json())
-      .then(data => {
-        if (data.success) {
-          alert('Sector deleted successfully');
-          location.reload();
-        } else {
-          deleteBtn.innerHTML = "Delete";
-          alert('Failed to delete sector: ' + (data.message || 'Unknown error'));
-        }
-      })
-      .catch(error => {
-        console.error('Error during fetch:', error);
-        deleteBtn.innerHTML = "Delete";
-        alert('An error occurred while deleting the user. Please try again.');
-      });
+function deleteSector(sectorId) {
+  if (sectorId && confirm('Are you sure you want to delete this sector?')) {
+    fetch(`/user/delete-sector/${sectorId}`, {
+      method: 'DELETE'
+    })
+    .then(res => res.json())
+    .then(data => {
+      if (data.success) {
+        alert('Sector deleted successfully');
+        location.reload();
+      } else {
+        alert('Failed to delete sector');
+      }
+    })
+    .catch(err => {
+      console.error('Error deleting sector:', err);
+      alert('Error deleting sector');
+    });
   }
 }
+
 
 function viewSector(sectorId) {
   if (sectorId) {
@@ -89,4 +88,8 @@ function viewSector(sectorId) {
   } else {
     alert('Invalid sector ID');
   }
+}
+
+function addBatch(sectorId) {
+  window.location.href = `/user/user-addbatch/${sectorId}`;
 }

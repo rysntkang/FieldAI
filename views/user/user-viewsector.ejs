@@ -1,1 +1,39 @@
-<h1><%= sector.sector_name %></h1>
+<h2>Batch Dashboard</h2>
+
+<div class="user-batch-dashboard">
+  <div class="user-batch-top">
+    <button onclick="location.href='/user/add-batch/<%= sector.sector_id %>'" class="btn btn-primary">Start New Batch</button>
+  </div>
+
+  <table class="user-batch-table">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Batch Name</th>
+        <th>Date Created</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% if (batches && batches.length === 0) { %>
+        <tr>
+          <td colspan="4" class="no-batch-message">
+            No runs found.
+          </td>
+        </tr>
+      <% } else { %>
+        <% batches.forEach((batch, index) => { %>
+          <tr>
+            <td><%= index + 1 %></td>
+            <td><%= batch.name %></td>
+            <td><%= batch.date_created %></td>
+            <td>
+              <button>Download</button>
+              <button class="delete-btn">Delete</button>
+            </td>
+          </tr>
+        <% }) %>
+      <% } %>
+    </tbody>
+  </table>
+</div>
