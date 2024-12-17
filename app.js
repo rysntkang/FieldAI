@@ -581,7 +581,21 @@ app.post('/user/add-batch', isAuthenticated, upload.array('images', 10), (req, r
   });
 });
 
+app.post('/user/delete-batch/:id', isAuthenticated, (req, res) => {
+  const batchId = req.params.id;
 
+  const deleteBatchQuery = 'DELETE FROM batch WHERE batch_id = ?';
+
+  db.query(deleteBatchQuery, [batchId], (err, result) => {
+    if (err) {
+      console.error("Error deleting batch:", err);
+      return res.status(500).send('Failed to delete batch.');
+    }
+
+    console.log(`Batch ${batchId} and associated images deleted successfully.`);
+    res.redirect('back');
+  });
+});
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {
