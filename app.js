@@ -453,25 +453,56 @@ app.get('/user/user-viewsector/:id', isAuthenticated, (req, res) => {
 
     const sector = results[0];
 
-    db.query('SELECT * FROM batch WHERE sector_id = ?', [sectorId], (err, result) => {
+    db.query('SELECT * FROM batch WHERE sector_id = ?', [sectorId], (err, batches) => {
       if (err) {
         console.error(err);
         return res.status(500).send('Database error occurred');
       }
 
+      if (batches.length === 0) {
+        return res.render('user/user', {
+          title: 'View Sector',
+          body: 'user-viewsector',
+          sector: sector,
+          batches: [],
+        });
+      }
 
-      const batches = result.length > 0 ? result: [];
+      const batchIds = batches.map(batch => batch.batch_id);
+      console.log("Batch IDs:", batchIds);
 
-      res.render('user/user', {
-        title: 'View Sector',
-        body: 'user-viewsector',
-        sector: sector,    
-        batches: batches,           
+      const tasselCountQuery = `
+        SELECT batch_id, SUM(tassel_count) AS total_tassel_count 
+        FROM image 
+        WHERE batch_id IN (?)
+        GROUP BY batch_id
+      `;
+
+      db.query(tasselCountQuery, [batchIds], (err, tasselCounts) => {
+        if (err) {
+          console.error(err);
+          return res.status(500).send('Database error occurred while fetching tassel counts');
+        }
+
+        const batchData = batches.map(batch => {
+          const tasselData = tasselCounts.find(tc => Number(tc.batch_id) === Number(batch.batch_id));
+          return {
+            ...batch,
+            total_tassel_count: tasselData ? tasselData.total_tassel_count : 0,
+          };
+        });        
+
+        res.render('user/user', {
+          title: 'View Sector',
+          body: 'user-viewsector',
+          sector: sector,
+          batches: batchData,
+        });
       });
-
-    })
+    });
   });
 });
+
 
 app.get('/user/add-batch/:id', isAuthenticated, (req, res) => {
   const sectorId = req.params.id;
@@ -485,10 +516,72 @@ app.get('/user/add-batch/:id', isAuthenticated, (req, res) => {
 
 //ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
 function mockMLProcessing(filePath) {
-  const tasselCount = Math.floor(Math.random() * 100) + 1; // Random count
-  console.log(`Mock ML Processing: ${filePath} - Tassel Count: ${tasselCount}`);
+  const tasselCount = Math.floor(Math.random() * 100) + 1;
+  console.log(`Processing image at ${filePath}: Tassel Count = ${tasselCount}`);
   return tasselCount;
 }
+
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
+app.post('/user/add-batch', isAuthenticated, upload.array('images', 10), (req, res) => {
+  const { name } = req.body;
+  const sectorId = req.query.sectorId;
+
+  if (!name || !req.files || req.files.length === 0) {
+    console.log(sectorId, name);
+    return res.redirect(`/user/add-batch/${sectorId}`);
+  }
+  
+
+  const batchQuery = 'INSERT INTO batch (sector_id, name) VALUES (?, ?)';
+  db.query(batchQuery, [sectorId, name], (err, result) => {
+    if (err) {
+      console.error('Error inserting batch:', err);
+      req.flash('error', 'Failed to create batch.');
+      return res.redirect(`/user/user-viewsector/${sectorId}`);
+    }
+
+    const batchId = result.insertId;
+
+    const imageQueries = req.files.map((file) => {
+      const tasselCount = mockMLProcessing(file.path); // Simulate ML processing
+      return new Promise((resolve, reject) => {
+        const imageQuery = `
+          INSERT INTO image (batch_id, filename, tassel_count)
+          VALUES (?, ?, ?)
+        `;
+        db.query(imageQuery, [batchId, file.filename, tasselCount], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    });
+
+    Promise.all(imageQueries)
+      .then(() => {
+        console.log('success', 'Batch created and images processed successfully!');
+        res.redirect(`/user/user-viewsector/${sectorId}`);
+      })
+      .catch((err) => {
+        console.error('Error processing images:', err);
+        console.log('error', 'Failed to process images.');
+        res.redirect(`/user/user-viewsector/${sectorId}`);
+      });
+  });
+});
+
+
 
 app.get('/logout', (req, res) => {
   req.session.destroy(err => {

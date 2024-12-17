@@ -1,22 +1,18 @@
 <div class="add-batch-container">
 
-    <form class="add-batch-form" action="/user/add-batch" method="POST">
-      
+    <form action="/user/add-batch?sectorId=<%= sectorid %>" method="POST" enctype="multipart/form-data">
+
+
+      <input type="hidden" name="sectorId" value="<%= sectorid %>">
       <div>
         <label for="name">Batch Name</label>
-        <input id="name" name="name" placeholder="Enter batch name" required>
+        <input type="text" name="name" id="name" placeholder="Enter your batch name" required>
+        
       </div>
 
       <div>
         <label for="images">Upload Images</label>
-        <input
-          type="file"
-          id="images"
-          name="images"
-          multiple
-          accept="image/*"
-          required
-        />
+        <input type="file" name="images" id="images" multiple required>        
       </div>
 
       <div class="add-batch-actions">
