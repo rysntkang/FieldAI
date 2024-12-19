@@ -1,18 +1,22 @@
 function searchUser() {
-  const searchInput = document.getElementById('search').value.toLowerCase();
-  const rows = document.querySelectorAll('table tbody tr');
+  const searchTerm = document.getElementById('search').value;
 
-  rows.forEach(row => {
-    const usernameCell = row.querySelector('td:nth-child(2)');
-    if (usernameCell) {
-      const username = usernameCell.innerText.toLowerCase();
-      if (username.includes(searchInput)) {
-        row.style.display = '';
-      } else {
-        row.style.display = 'none';
-      }
-    }
-  });
+  // Fetch filtered users via AJAX
+  fetch(`/admin/home?search=${encodeURIComponent(searchTerm)}`, {
+    headers: { 'X-Requested-With': 'XMLHttpRequest' },
+  })
+    .then(response => {
+      if (!response.ok) throw new Error('Network response was not ok');
+      return response.text();
+    })
+    .then(html => {
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const newTableBody = doc.querySelector('table tbody');
+      const currentTableBody = document.querySelector('table tbody');
+      currentTableBody.innerHTML = newTableBody.innerHTML;
+    })
+    .catch(error => console.error('Error during search:', error));
 }
 
 function addUser() {

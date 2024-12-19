@@ -115,7 +115,9 @@ app.get('/register', (req, res) => {
 app.post('/login', (req, res) => {
   const { username, password } = req.body;
 
-  db.query('SELECT * FROM useraccount WHERE username = ?', [username], async (err, results) => {
+  const query = 'SELECT * FROM useraccount WHERE username = ?';
+
+  db.query(query, [username], async (err, results) => {
     if (err) {
       console.error(err);
       return res.status(500).send('Database error occurred');
@@ -150,7 +152,6 @@ app.post('/login', (req, res) => {
     });
   });
 });
-
 
 app.get('/home', isAuthenticated, (req, res) => {
   if (req.role === 'Admin') {
@@ -189,10 +190,11 @@ app.get('/admin/home', isAuthenticated, async (req, res) => {
   if (req.role !== 'Admin') {
     return res.redirect('/login');
   }
-
-  const query = 'SELECT user_id, username, role FROM useraccount WHERE user_id != ?';
+  
+  const search = req.query.search || '';
+  const query = 'SELECT user_id, username, role FROM useraccount WHERE user_id != ? AND username LIKE ?';
   try {
-    const [users] = await db.promise().query(query,[req.session.user.user_id]);
+    const [users] = await db.promise().query(query,[req.session.user.user_id, `%${search}%`, ]);
     res.render('admin/admin', {
       title: 'Admin Dashboard',
       body: 'adminhome',
