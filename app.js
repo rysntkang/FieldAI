@@ -341,7 +341,7 @@ app.post('/register', async (req, res) => {
       const hashedPassword = await bcrypt.hash(password, saltRounds);
 
       const sql = 'INSERT INTO useraccount (email, username, password, role) VALUES (?, ?, ?, ?)';
-      db.query(sql, [email, username, hashedPassword, 'user'], (err, results) => {
+      db.query(sql, [email, username, hashedPassword, 'User'], (err, results) => {
         if (err) {
           req.flash('error', 'Registration failed. Please try again.');
           return res.redirect('/register');
@@ -679,8 +679,8 @@ app.post('/user/add-batch', isAuthenticated, multerMiddleware.array('images', 10
   }
 );
 
-//Local, do not touch
-//ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
+// Local, do not touch
+// ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
 // function mockMLProcessing(filePath) {
 //   const tasselCount = Math.floor(Math.random() * 100) + 1;
 //   console.log(`Processing image at ${filePath}: Tassel Count = ${tasselCount}`);
