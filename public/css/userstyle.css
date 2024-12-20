@@ -260,19 +260,37 @@ button:hover {
 
 .user-batch-top {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between; /* Align buttons on opposite sides */
+  align-items: center; /* Vertically center buttons */
   margin-bottom: 15px;
+}
+
+.user-batch-top .btn-primary {
+  background-color: #28a745; /* "Start New Batch" button color */
+  color: #fff;
+}
+
+.user-batch-top .btn-secondary {
+  background-color: #6c757d; /* "Back" button color */
+  color: #fff;
 }
 
 .user-batch-top button {
   padding: 8px 12px;
-  background-color: #28a745;
-  color: #fff;
   border: none;
   border-radius: 5px;
   cursor: pointer;
   transition: background-color 0.3s ease;
 }
+
+.user-batch-top .btn-primary:hover {
+  background-color: #218838;
+}
+
+.user-batch-top .btn-secondary:hover {
+  background-color: #5a6268;
+}
+
 
 .user-batch-table {
   width: 100%;

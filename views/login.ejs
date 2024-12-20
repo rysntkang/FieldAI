@@ -2,11 +2,18 @@
     <section class="login-header">
       <h1>Login Page</h1>
     </section>
+
+    <% if (error && error.length > 0) { %>
+      <div class="alert alert-danger">
+        <%= error[0] %>
+      </div>
+    <% } %>
     <% if (success && success.length > 0) { %>
       <div class="alert alert-success">
         <%= success[0] %>
       </div>
     <% } %>
+
     <section class="login-container">
       <h2>FieldAI</h2>
       <p>Enter your credentials:</p>

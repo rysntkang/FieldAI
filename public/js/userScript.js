@@ -23,12 +23,19 @@ overlay.addEventListener("click", closeAddModalFunction);
 const editSectorModal = document.getElementById("editSectorModal");
 
 function editSector(sectorId) {
+  console.log('test');
   fetch(`/user/get-sector/${sectorId}`)
-    .then(res => res.json())
-    .then(data => {
+    .then((res) =>{
+      if (!res.ok) {
+        throw new Error(`HTTP error! status: ${res.status}`);
+      }
+      return res.json();
+    })
+    .then((data) => {
+      console.log('Test1 Fetched sector data:', data);
       if (data.success) {
-        document.getElementById("sector_name").value = data.sector.sector_name;
-        document.getElementById("description").value = data.sector.description;
+        document.getElementById("edit_sector_name").value = data.sector.sector_name;
+        document.getElementById("edit_description").value = data.sector.description;
 
         const form = document.getElementById("editSectorForm");
         form.setAttribute("action", `/edit-sector/${sectorId}`);

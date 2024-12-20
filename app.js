@@ -109,7 +109,9 @@ app.get('/login', (req, res) => {
 });
 
 app.get('/register', (req, res) => {
-  res.render('index', { title: 'Register', page: 'register' });
+  const error = req.flash('error')
+  const success = req.flash('success');
+  res.render('index', { title: 'Register', page: 'register', error, success });
 });
 
 app.post('/login', (req, res) => {
@@ -120,7 +122,8 @@ app.post('/login', (req, res) => {
   db.query(query, [username], async (err, results) => {
     if (err) {
       console.error(err);
-      return res.status(500).send('Database error occurred');
+      req.flash('error', 'A database error occurred. Please try again later.');
+      return res.redirect('/login');
     }
     if (results.length === 0) {
       req.flash('error', 'Invalid username or password');
@@ -146,6 +149,7 @@ app.post('/login', (req, res) => {
     req.session.save((err) => {
       if (err) {
         console.error('Session save error:', err);
+        req.flash('error', 'Login failed. Please try again.');
         return res.redirect('/login');
       }
       res.redirect(`/home`);
@@ -323,11 +327,14 @@ app.post('/register', async (req, res) => {
     async (err, results) => {
       if (err) {
         console.error(err);
-        return res.status(500).send('Database error occurred');
+        req.flash('error', 'A database error occurred. Please try again later.');
+        return res.redirect('/register');
       }
 
       if (results.length > 0) {
-        return res.status(400).send('Email or username already exists');
+        console.log("Test1")
+        req.flash('error', 'Email or username already exists.');
+        return res.redirect('/register');
       }
 
       const saltRounds = 10;
@@ -336,8 +343,8 @@ app.post('/register', async (req, res) => {
       const sql = 'INSERT INTO useraccount (email, username, password, role) VALUES (?, ?, ?, ?)';
       db.query(sql, [email, username, hashedPassword, 'user'], (err, results) => {
         if (err) {
-          console.error(err);
-          return res.status(500).send('Registration failed');
+          req.flash('error', 'Registration failed. Please try again.');
+          return res.redirect('/register');
         }
 
         req.flash('success', 'Registration successful! Please log in.');

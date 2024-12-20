@@ -64,7 +64,7 @@
       <textarea id="description" name="description" placeholder="Enter sector description" required></textarea>
     </div>
     <div class="add-sector-actions">
-      <button type="submit">Save</button>
+      <button type="submit">Add</button>
       <button type="button" id="closeAddModal" class="back-btn">Cancel</button>
     </div>
   </form>
@@ -75,11 +75,11 @@
   <form id="editSectorForm" class="edit-sector-form" method="POST" action="/edit-sector">
     <div>
       <label for="sector_name">Sector Name:</label>
-      <input type="text" id="sector_name" name="sector_name" placeholder="Edit sector name" required>
+      <input type="text" id="edit_sector_name" name="sector_name" placeholder="Edit sector name" required>
     </div>
     <div>
       <label for="description">Description:</label>
-      <textarea id="description" name="description" placeholder="Edit sector description" required></textarea>
+      <textarea id="edit_description" name="description" placeholder="Edit sector description" required></textarea>
     </div>
     <div class="edit-sector-actions">
       <button type="submit">Edit</button>
