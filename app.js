@@ -417,6 +417,29 @@ app.post('/user/edit-account/', isAuthenticated, (req, res) => {
     res.redirect('/user/user-viewaccount')
 });
 
+app.delete('/user/delete-account', isAuthenticated, async (req, res) => {
+  const userId = req.session.user.user_id;
+
+  try {
+    await db.promise().query('DELETE FROM farmsector WHERE user_id = ?', [userId]);
+    await db.promise().query('DELETE FROM useraccount WHERE user_id = ?', [userId]);
+
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error destroying session:', err);
+        return res.status(500).send({ success: false, message: 'Error logging out after account deletion.' });
+      }
+      res.clearCookie('connect.sid');
+      res.status(200).send({ success: true, message: 'Account deleted successfully.' });
+    });
+  } catch (err) {
+    console.error('Error deleting account:', err);
+    res.status(500).send({ success: false, message: 'Error deleting account.' });
+  }
+});
+
+
+
 app.post("/add-sector", (req, res) => {
   const { sector_name, description } = req.body;
 

@@ -19,6 +19,43 @@ const closeAddModalFunction = () => {
 closeAddModal.addEventListener("click", closeAddModalFunction);
 overlay.addEventListener("click", closeAddModalFunction);
 
+async function deleteAccount() {
+  if (confirm('Are you sure you want to delete your account? This action cannot be undone.')) {
+    try {
+      console.log("Test1")
+      const response = await fetch('/user/delete-account', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+      });
+      console.log("Test2")
+
+      console.log("Test3")
+      if (!response.ok) {
+        throw new Error('Server error while deleting account.');
+      }
+      console.log("Test4")
+
+      const result = await response.json();
+
+      console.log("Test5")
+      if (result.success) {
+        console.log("Test6")
+        alert(result.message);
+        window.location.href = '/login';
+        console.log("Test7")
+      } else {
+        console.log("Test8")
+        alert(result.message || 'Failed to delete account.');
+      }
+    } catch (err) {
+      console.log("Test9")
+      console.error('Error deleting account:', err);
+      alert('An error occurred while deleting your account.');
+    }
+  }
+}
+
+
 //Edit Sector
 const editSectorModal = document.getElementById("editSectorModal");
 
