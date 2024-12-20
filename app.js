@@ -590,161 +590,159 @@ app.get('/user/add-batch/:id', isAuthenticated, (req, res) => {
 });
 
 //For Evan, with love <3
-const storage = new Storage({
-  keyFilename: 'JSON FILE HERE', // Replace with your actual JSON file path
-});
-const bucket = storage.bucket('BUCKET-NAME-HERE'); // Replace with your GCS bucket name
+// const storage = new Storage();
+// const bucket = storage.bucket(process.env.GCLOUD_STORAGE_BUCKET); // Replace with your GCS bucket name
 
-const multerMiddleware = multer({
-  storage: multer.memoryStorage(), // Temporarily hold files in memory
-  limits: { fileSize: 10 * 1024 * 1024 }, // Max file size: 10MB
-});
+// const multerMiddleware = multer({
+//   storage: multer.memoryStorage(), // Temporarily hold files in memory
+//   limits: { fileSize: 10 * 1024 * 1024 }, // Max file size: 10MB
+// });
 
-//ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
-function mockMLProcessing(gcsUrl) {
-  const tasselCount = Math.floor(Math.random() * 100) + 1;
-  console.log(`Processing image at ${gcsUrl}: Tassel Count = ${tasselCount}`);
-  return tasselCount;
-}
-
-const uploadToGCS = (file) => {
-  return new Promise((resolve, reject) => {
-    const blob = bucket.file(Date.now() + '-' + file.originalname);
-    const blobStream = blob.createWriteStream({
-      resumable: false,
-      contentType: file.mimetype,
-    });
-
-    blobStream.on('error', (err) => reject(err));
-    blobStream.on('finish', () => {
-      const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-      console.log(`File uploaded to GCS: ${publicUrl}`);
-      resolve(publicUrl);
-    });
-
-    blobStream.end(file.buffer);
-  });
-};
-
-// POST Route: Add Batch
-app.post('/user/add-batch', isAuthenticated, multerMiddleware.array('images', 10), // Accept up to 10 images
-  async (req, res) => {
-    const { name } = req.body;
-    const sectorId = req.query.sectorId;
-
-    if (!name || !req.files || req.files.length === 0) {
-      console.log(sectorId, name);
-      return res.redirect(`/user/add-batch/${sectorId}`);
-    }
-
-    const batchQuery = 'INSERT INTO batch (sector_id, name) VALUES (?, ?)';
-    db.query(batchQuery, [sectorId, name], async (err, result) => {
-      if (err) {
-        console.error('Error inserting batch:', err);
-        req.flash('error', 'Failed to create batch.');
-        return res.redirect(`/user/user-viewsector/${sectorId}`);
-      }
-
-      const batchId = result.insertId;
-
-      try {
-        //Process files one by one
-        const uploadPromises = req.files.map(async (file) => {
-          const gcsUrl = await uploadToGCS(file); //Upload file to Google Cloud Storage
-          const tasselCount = mockMLProcessing(gcsUrl); //Simulate ML Processing
-
-          // Insert image record into the database
-          const imageQuery = `
-            INSERT INTO image (batch_id, filename, tassel_count)
-            VALUES (?, ?, ?)
-          `;
-          return new Promise((resolve, reject) => {
-            db.query(imageQuery, [batchId, gcsUrl, tasselCount], (err) => {
-              if (err) return reject(err);
-              resolve();
-            });
-          });
-        });
-
-        await Promise.all(uploadPromises);
-
-        console.log('success', 'Batch created and images processed successfully!');
-        res.redirect(`/user/user-viewsector/${sectorId}`);
-      } catch (uploadError) {
-        console.error('Error uploading files:', uploadError);
-        req.flash('error', 'Failed to upload files.');
-        res.redirect(`/user/user-viewsector/${sectorId}`);
-      }
-    });
-  }
-);
-
-// Local, do not touch
-// ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
-// function mockMLProcessing(filePath) {
+// //ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
+// function mockMLProcessing(gcsUrl) {
 //   const tasselCount = Math.floor(Math.random() * 100) + 1;
-//   console.log(`Processing image at ${filePath}: Tassel Count = ${tasselCount}`);
+//   console.log(`Processing image at ${gcsUrl}: Tassel Count = ${tasselCount}`);
 //   return tasselCount;
 // }
 
-// const storage = multer.diskStorage({
-//   destination: (req, file, cb) => {
-//     cb(null, 'uploads/');
-//   },
-//   filename: (req, file, cb) => {
-//     const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-//     cb(null, uniqueSuffix + '-' + file.originalname);
-//   }
-// });
-
-// const upload = multer({ storage });
-
-// app.post('/user/add-batch', isAuthenticated, upload.array('images', 10), (req, res) => {
-//   const { name } = req.body;
-//   const sectorId = req.query.sectorId;
-
-//   if (!name || !req.files || req.files.length === 0) {
-//     console.log(sectorId, name);
-//     return res.redirect(`/user/add-batch/${sectorId}`);
-//   }
-  
-//   const batchQuery = 'INSERT INTO batch (sector_id, name) VALUES (?, ?)';
-//   db.query(batchQuery, [sectorId, name], (err, result) => {
-//     if (err) {
-//       console.error('Error inserting batch:', err);
-//       req.flash('error', 'Failed to create batch.');
-//       return res.redirect(`/user/user-viewsector/${sectorId}`);
-//     }
-
-//     const batchId = result.insertId;
-
-//     const imageQueries = req.files.map((file) => {
-
-//       const tasselCount = mockMLProcessing(file.path); // Simulate ML processing
-//       return new Promise((resolve, reject) => {
-//         const imageQuery = `
-//           INSERT INTO image (batch_id, filename, tassel_count)
-//           VALUES (?, ?, ?)
-//         `;
-//         db.query(imageQuery, [batchId, file.filename, tasselCount], (err) => {
-//           if (err) return reject(err);
-//           resolve();
-//         });
-//       });
+// const uploadToGCS = (file) => {
+//   return new Promise((resolve, reject) => {
+//     const blob = bucket.file(Date.now() + '-' + file.originalname);
+//     const blobStream = blob.createWriteStream({
+//       resumable: false,
+//       contentType: file.mimetype,
 //     });
 
-//     Promise.all(imageQueries)
-//       .then(() => {
+//     blobStream.on('error', (err) => reject(err));
+//     blobStream.on('finish', () => {
+//       const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+//       console.log(`File uploaded to GCS: ${publicUrl}`);
+//       resolve(publicUrl);
+//     });
+
+//     blobStream.end(file.buffer);
+//   });
+// };
+
+// // POST Route: Add Batch
+// app.post('/user/add-batch', isAuthenticated, multerMiddleware.array('images', 10), // Accept up to 10 images
+//   async (req, res) => {
+//     const { name } = req.body;
+//     const sectorId = req.query.sectorId;
+
+//     if (!name || !req.files || req.files.length === 0) {
+//       console.log(sectorId, name);
+//       return res.redirect(`/user/add-batch/${sectorId}`);
+//     }
+
+//     const batchQuery = 'INSERT INTO batch (sector_id, name) VALUES (?, ?)';
+//     db.query(batchQuery, [sectorId, name], async (err, result) => {
+//       if (err) {
+//         console.error('Error inserting batch:', err);
+//         req.flash('error', 'Failed to create batch.');
+//         return res.redirect(`/user/user-viewsector/${sectorId}`);
+//       }
+
+//       const batchId = result.insertId;
+
+//       try {
+//         //Process files one by one
+//         const uploadPromises = req.files.map(async (file) => {
+//           const gcsUrl = await uploadToGCS(file); //Upload file to Google Cloud Storage
+//           const tasselCount = mockMLProcessing(gcsUrl); //Simulate ML Processing
+
+//           // Insert image record into the database
+//           const imageQuery = `
+//             INSERT INTO image (batch_id, filename, tassel_count)
+//             VALUES (?, ?, ?)
+//           `;
+//           return new Promise((resolve, reject) => {
+//             db.query(imageQuery, [batchId, gcsUrl, tasselCount], (err) => {
+//               if (err) return reject(err);
+//               resolve();
+//             });
+//           });
+//         });
+
+//         await Promise.all(uploadPromises);
+
 //         console.log('success', 'Batch created and images processed successfully!');
 //         res.redirect(`/user/user-viewsector/${sectorId}`);
-//       })
-//       .catch((err) => {
-//         console.error('Error processing images:', err);
-//         console.log('error', 'Failed to process images.');
+//       } catch (uploadError) {
+//         console.error('Error uploading files:', uploadError);
+//         req.flash('error', 'Failed to upload files.');
 //         res.redirect(`/user/user-viewsector/${sectorId}`);
-//       });
-//   });
-// });
+//       }
+//     });
+//   }
+// );
+
+// Local, do not touch
+// ONLY TO SIMULATE MACHINE LEARNING FUNCTIONALITY, PLEASE DELETE IN A FUTURE DATE
+function mockMLProcessing(filePath) {
+  const tasselCount = Math.floor(Math.random() * 100) + 1;
+  console.log(`Processing image at ${filePath}: Tassel Count = ${tasselCount}`);
+  return tasselCount;
+}
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'uploads/');
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + '-' + file.originalname);
+  }
+});
+
+const upload = multer({ storage });
+
+app.post('/user/add-batch', isAuthenticated, upload.array('images', 10), (req, res) => {
+  const { name } = req.body;
+  const sectorId = req.query.sectorId;
+
+  if (!name || !req.files || req.files.length === 0) {
+    console.log(sectorId, name);
+    return res.redirect(`/user/add-batch/${sectorId}`);
+  }
+  
+  const batchQuery = 'INSERT INTO batch (sector_id, name) VALUES (?, ?)';
+  db.query(batchQuery, [sectorId, name], (err, result) => {
+    if (err) {
+      console.error('Error inserting batch:', err);
+      req.flash('error', 'Failed to create batch.');
+      return res.redirect(`/user/user-viewsector/${sectorId}`);
+    }
+
+    const batchId = result.insertId;
+
+    const imageQueries = req.files.map((file) => {
+
+      const tasselCount = mockMLProcessing(file.path); // Simulate ML processing
+      return new Promise((resolve, reject) => {
+        const imageQuery = `
+          INSERT INTO image (batch_id, filename, tassel_count)
+          VALUES (?, ?, ?)
+        `;
+        db.query(imageQuery, [batchId, file.filename, tasselCount], (err) => {
+          if (err) return reject(err);
+          resolve();
+        });
+      });
+    });
+
+    Promise.all(imageQueries)
+      .then(() => {
+        console.log('success', 'Batch created and images processed successfully!');
+        res.redirect(`/user/user-viewsector/${sectorId}`);
+      })
+      .catch((err) => {
+        console.error('Error processing images:', err);
+        console.log('error', 'Failed to process images.');
+        res.redirect(`/user/user-viewsector/${sectorId}`);
+      });
+  });
+});
 
 app.post('/user/delete-batch/:id', isAuthenticated, (req, res) => {
   const batchId = req.params.id;
