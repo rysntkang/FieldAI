@@ -371,6 +371,45 @@ app.get('/user/user-viewaccount', isAuthenticated, (req, res) => {
   });
 });
 
+app.get('/user/edit-account', isAuthenticated, (req, res) => {
+  const userId = req.session.user.user_id;
+
+  db.query('SELECT * FROM useraccount WHERE user_id = ?', [userId], (err, results) => {
+    if (err) {
+      console.error(err);
+      return res.status(500).send('Database error occurred');
+    }
+
+    if (results.length === 0) {
+      return res.status(404).send('User not found');
+    }
+
+    const user = results[0];
+
+    res.render('user/user', {
+      title: 'Update Account',
+      body: 'user-editaccount',
+      user: user
+    })
+  });
+});
+
+app.post('/user/edit-account/', isAuthenticated, (req, res) => {
+  const userId = req.session.user.user_id;
+  const { email, username } = req.body;
+
+  db.query('UPDATE useraccount SET email = ?, username = ? WHERE user_id = ?', 
+    [email, username, userId],
+    (err, results) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).send('Error updating user data.');
+      }
+    });
+
+    res.redirect('/user/user-viewaccount')
+});
+
 app.post("/add-sector", (req, res) => {
   const { sector_name, description } = req.body;
 

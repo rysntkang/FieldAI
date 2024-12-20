@@ -1,7 +1,6 @@
 function searchUser() {
   const searchTerm = document.getElementById('search').value;
 
-  // Fetch filtered users via AJAX
   fetch(`/admin/home?search=${encodeURIComponent(searchTerm)}`, {
     headers: { 'X-Requested-With': 'XMLHttpRequest' },
   })
