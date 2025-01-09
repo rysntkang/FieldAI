@@ -17,17 +17,17 @@ const app = express();
 const PORT = 8080;
 
 const dbConfig = process.env.INSTANCE_UNIX_SOCKET
-  ? {   // Cloud SQL Configuration for Google Cloud
+  ? {   //Cloud Config for Google Cloud
       socketPath: process.env.INSTANCE_UNIX_SOCKET,
       user: process.env.DB_USER,
       password: process.env.DB_PASS,
       database: process.env.DB_NAME,
     }
-  : {   // Local Development Configuration
-      host: process.env.DB_HOST || '127.0.0.1',
-      user: process.env.DB_USER || 'sqladmin',
-      password: process.env.DB_PASS || 'Slc223311',
-      database: process.env.DB_NAME ||'fieldaiDB',
+  : {   //Local Configuration
+      host: process.env.DB_HOST,
+      user: process.env.DB_USER,
+      password: process.env.DB_PASS,
+      database: process.env.DB_NAME,
       port: process.env.DB_PORT || 3306
     };
 

@@ -4,7 +4,7 @@ const db = mysql.createConnection({
   host: '127.0.0.1', // Cloud SQL public IP
   user: 'sqladmin',
   password: 'Slc223311', // Use a secure environment variable for sensitive info
-  database: 'fieldaiDB',
+  database: 'fieldaidb',
   port: 3306,
   connectTimeout: 10000, // 10 seconds timeout
 });
