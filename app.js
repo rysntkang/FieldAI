@@ -1,29 +1,22 @@
 const express = require('express');
 const path = require('path');
-const bodyParser = require('body-parser');
-const flash = require('connect-flash');
-const config = require('./config/config');
-const db = require('./config/db');
+const pagesRouter = require('./routes/pages');
+const logger = require('./middleware/logger');
 
 const app = express();
 
+// Middleware
+app.use(logger);
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.urlencoded({ extended: false }));
+
+// View Engine
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
-app.use(flash());
-
-app.use((req, res, next) => {
-  next();
-});
-
 // Routes
-app.use('/', require('./routes/launchRoute'));
-app.use('/', require('./routes/authRoute'));
+app.use('/', pagesRouter);
 
 // Start Server
-app.listen(config.PORT, () => {
-  console.log(`Server is running at http://localhost:${config.PORT}`);
-});
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => console.log(`Server running on http://localhost:${PORT}`));
