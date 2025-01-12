@@ -17,38 +17,55 @@
         box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
         margin-bottom: 20px;
     }
-    .about, .pricing {
-        padding: 50px 20px;
+    .feature-item img {
+        width: 300px;
+        height: 172px;
+        border-radius: 8px;
+        margin-bottom: 1rem;
     }
-    .btn-primary {
-        background-color: #007bff;
-        border: none;
-    }
-    .btn-primary:hover {
-        background-color: #0056b3;
+    .features-bg {
+      background: url('/images/features-bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
     }
   </style>
 </head>
 <body>
   <%- include('../partials/header') %>
 
+  <div class="features-bg">
+    <div class="text-center">
+      <h1>Welcome to FieldAi</h1>
+      <p>Transform your farming with AI-powered solutions.</p>
+      <a href="/about" class="btn btn-primary btn-lg">Learn More</a>
+    </div>
+  </div>
+
   <div class="container features">
     <h2 class="text-center">Features</h2>
     <div class="row">
         <div class="col-md-4">
             <div class="feature-item text-center">
+                <img src="/images/feature1.jpg">
                 <h4>Image Upload</h4>
                 <p>Upload images of your cornfield easily and securely.</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="feature-item text-center">
+                <img src="/images/feature2.jpg">
                 <h4>Accurate Analysis</h4>
                 <p>Get detailed corn count and density analysis using cutting-edge technology.</p>
             </div>
         </div>
         <div class="col-md-4">
             <div class="feature-item text-center">
+                <img src="/images/feature3.jpg">
                 <h4>Scalable Performance</h4>
                 <p>Enjoy fast and efficient processing, no matter the size of your field.</p>
             </div>
