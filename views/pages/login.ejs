@@ -27,29 +27,35 @@
         text-align: center;
         margin-top: 15px;
     }
+    
   </style>
 </head>
 <body>
-  <%- include('../partials/header') %>
-  
-  <div class="container">
-    <div class="login-container">
-      <h2>Login</h2>
-      <form>
-        <div class="form-group">
-          <label for="username">Username:</label>
-          <input type="text" class="form-control" id="username" placeholder="Enter username">
-        </div>
-        <div class="form-group">
-          <label for="password">Password:</label>
-          <input type="password" class="form-control" id="password" placeholder="Enter password">
-        </div>
-        <button type="submit" class="btn btn-primary">Login</button>
-        <a href="/register" class="register-link">Don't have an account? Register here.</a>
-      </form>
+  <div class="cotent">
+    <%- include('../partials/header') %>
+    
+    <div class="container">
+      <div class="login-container">
+        <h2>Login</h2>
+        <form>
+          <div class="form-group">
+            <label for="username">Username:</label>
+            <input type="text" class="form-control" id="username" placeholder="Enter username">
+          </div>
+          <div class="form-group">
+            <label for="password">Password:</label>
+            <input type="password" class="form-control" id="password" placeholder="Enter password">
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+          <a href="/register" class="register-link">Don't have an account? Register here.</a>
+        </form>
+      </div>
+    </div>
+
+    <div class="container">
+      <%- include('../partials/footer') %>
     </div>
   </div>
-  
-  <%- include('../partials/footer') %>
+
 </body>
 </html>

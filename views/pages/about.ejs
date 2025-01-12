@@ -7,6 +7,35 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/styles.css">
   <style>
+    /* Hero Section Styles */
+    .about-bg {
+        position: relative;
+        background: url('/images/about-bg.jpg') no-repeat center center fixed;
+        background-size: cover;
+        height: 60vh;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+        color: white;
+        text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+    .about-bg::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.5); /* Semi-transparent overlay */
+        z-index: 1;
+    }
+    .about-bg-content {
+        position: relative;
+        z-index: 2;
+    }
+
+    /* Why Choose Us Section */
     .why-choose-us {
         padding: 50px 20px;
     }
@@ -14,41 +43,57 @@
         text-align: center;
         padding: 20px;
         margin-bottom: 20px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
     }
     .why-item img {
-        width: 60px;
-        height: 60px;
-        margin-bottom: 15px;
+      width: 300px;
+      height: 172px;
+      margin-bottom: 15px;
     }
   </style>
 </head>
 <body>
-  <%- include('../partials/header') %>
+  <div class="wrapper">
+    <div class="content">
+      <%- include('../partials/header') %>
 
-  <div class="container why-choose-us">
-    <h2 class="text-center">Why Choose Us?</h2>
-    <div class="row">
-        <div class="col-md-4">
-            <div class="why-item">
-                <h4>Cutting-Edge AI</h4>
-                <p>Our AI algorithms deliver precise and actionable insights.</p>
+      <div class="about-bg">
+        <div class="about-bg-content">
+          <h1>About FieldAI</h1>
+          <p>Empowering farmers with advanced AI technology.</p>
+        </div>
+      </div>
+
+      <div class="container why-choose-us">
+        <h2 class="text-center mb-5">Why Choose Us?</h2>
+        <div class="row">
+            <div class="col-md-4">
+                <div class="why-item">
+                    <img src="/images/about1.jpg" alt="AI Icon">
+                    <h4>Cutting-Edge AI</h4>
+                    <p>Our AI algorithms deliver precise and actionable insights.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="why-item">
+                    <img src="/images/about2.jpg" alt="Security Icon">
+                    <h4>Data Security</h4>
+                    <p>Your data is safe with our robust security protocols.</p>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="why-item">
+                    <img src="/images/about3.jpg" alt="Support Icon">
+                    <h4>24/7 Support</h4>
+                    <p>We're here to help whenever you need us.</p>
+                </div>
             </div>
         </div>
-        <div class="col-md-4">
-            <div class="why-item">
-                <h4>Data Security</h4>
-                <p>Your data is safe with our robust security protocols.</p>
-            </div>
-        </div>
-        <div class="col-md-4">
-            <div class="why-item">
-                <h4>24/7 Support</h4>
-                <p>We're here to help whenever you need us.</p>
-            </div>
-        </div>
+      </div>
     </div>
   </div>
-
   <%- include('../partials/footer') %>
 </body>
 </html>
