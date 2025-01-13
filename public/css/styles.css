@@ -19,3 +19,19 @@ footer {
   padding: 10px 20px;
   text-align: center;
 }
+
+.custom-bg {
+  background-color: #4f7942;
+}
+ 
+.custom-bg .navbar-brand {
+  color: #ffffff;
+}
+
+.custom-bg .navbar-nav .nav-link {
+  color: #ffffff;
+}
+
+.custom-bg .nav-link:hover {
+  color: #cce7dd; /* Optional: Hover effect */
+}
