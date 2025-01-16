@@ -60,7 +60,7 @@ const loginUser = async (req, res) => {
         }
 
         req.session.user = { id: user.id, username: user.username };
-        res.redirect('/');
+        res.redirect('/dashboard');
     } catch (error) {
         console.error(error);
         res.status(500).send('Internal Server Error');
