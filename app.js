@@ -4,6 +4,7 @@ const session = require('express-session');
 // Routes
 const pagesRouter = require('./routes/pages');
 const authRouter = require('./routes/auth');
+const adminRouter = require('./routes/admin');
 const userRouter = require('./routes/user');
 const logger = require('./middleware/logger');
 
@@ -40,6 +41,7 @@ app.use(session(
 // Routes
 app.use('/', pagesRouter);
 app.use('/', authRouter);
+app.use('/', adminRouter);
 app.use('/', userRouter);
 
 // Start Server

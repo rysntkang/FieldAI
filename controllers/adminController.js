@@ -26,7 +26,7 @@ const registerUser = async (req, res) => {
 
         const result = await createUser(email, username, hashedPassword, latitude, longitude);
         if (result) {
-            res.redirect('/login');
+            res.redirect('/admin/dashboard');
         } else {
             res.status(500).send('Error creating user.');
         }
@@ -36,37 +36,4 @@ const registerUser = async (req, res) => {
     }
 };
 
-const loginUser = async (req, res) => {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-        return res.status(400).send('Username and password are required.');
-    }
-
-    try {
-        const user = await findUserByUsername(username);
-        if (!user) {
-            return res.status(400).send('Invalid username or password.');
-        }
-
-        const passwordMatch = await bcryptjs.compare(password, user.password);
-        if (!passwordMatch) {
-            return res.status(400).send('Invalid username or password.');
-        }
-
-        req.session.user = { id: user.id, username: user.username };
-
-        if (user.role == "Admin") {
-            res.redirect('/admin/dashboard');
-        }
-        else {
-            res.redirect('/user/dashboard');
-        }
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
-    }
-};
-
-module.exports = { registerUser, loginUser };
+module.exports = { registerUser };

@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
 
-router.get('/dashboard', (req, res) => res.render('pages/dashboard'));
+router.get('/user/dashboard', (req, res) => res.render('pages/user/dashboard'));
 
 module.exports = router;

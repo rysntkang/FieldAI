@@ -18,4 +18,9 @@ const createUser = async (email, username, hashedPassword, latitude, longitude) 
     return result.affectedRows > 0;
 };
 
-module.exports = { findUserByEmail, findUserByUsername, createUser };
+const getAllUsers = async () => {
+    const [rows] = await db.execute('SELECT * FROM useraccount WHERE role != "Admin"');
+    return rows;
+};
+
+module.exports = { findUserByEmail, findUserByUsername, createUser, getAllUsers, addUser };
