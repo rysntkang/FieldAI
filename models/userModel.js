@@ -23,4 +23,4 @@ const getAllUsers = async () => {
     return rows;
 };
 
-module.exports = { findUserByEmail, findUserByUsername, createUser, getAllUsers, addUser };
+module.exports = { findUserByEmail, findUserByUsername, createUser, getAllUsers };
