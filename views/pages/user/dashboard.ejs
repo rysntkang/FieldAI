@@ -8,7 +8,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
     .custom-bg {
-      background-color: #f8f9fa; /* Adjust as needed */
+      background-color: #f8f9fa;
     }
 
     .sidebar {
@@ -27,12 +27,12 @@
     }
 
     #temperatureChart {
-      max-height: 400px; /* Adjust as needed */
+      max-height: 400px;
     }
 
     .chart-container {
       position: relative;
-      height: 400px; /* Fixed height for the chart container */
+      height: 400px;
     }
   </style>
 </head>
@@ -43,7 +43,6 @@
     <div class="row">
       <%- include('../../partials/user/sidebar') %>
 
-      <!-- Main Content -->
       <main class="content col-md-9 col-lg-10">
         <div class="row">
           <div class="col-md-12">
@@ -51,6 +50,13 @@
             <canvas id="temperatureChart"></canvas>
           </div>
         </div>
+        <div class="row">
+          <div class="col-md-12">
+            <h4>Rainfall and Irrigation Tracker</h4>
+            <canvas id="rainfallChart"></canvas>
+          </div>
+        </div>
+        
       </main>
     </div>
   </div>
@@ -63,15 +69,12 @@
   <script>
     document.addEventListener('DOMContentLoaded', () => {
       try {
-        // Extract the temperature data passed from the server
         const temperatureData = <%- JSON.stringify(temperatureData) %>;
   
-        // Prepare data for Chart.js
         const labels = temperatureData.map((data) => data.date);
         const tempMax = temperatureData.map((data) => data.temp_max);
         const tempMin = temperatureData.map((data) => data.temp_min);
   
-        // Create the line chart
         const ctx = document.getElementById('temperatureChart').getContext('2d');
         new Chart(ctx, {
           type: 'line',
@@ -112,8 +115,69 @@
         alert('Failed to load temperature data. Please try again later.');
       }
     });
+
+    document.addEventListener('DOMContentLoaded', async () => {
+    try {
+      const response = await fetch('/user/rainfall-irrigation');
+      if (!response.ok) throw new Error('Failed to fetch rainfall data.');
+
+      const rainfallData = await response.json();
+
+      const labels = rainfallData.map((data) => data.date);
+      const precipitation = rainfallData.map((data) => data.precipitation);
+      const irrigationNeeded = rainfallData.map((data) => data.irrigationNeeded ? 5 : null); // Use 5mm as a threshold marker
+
+      const ctx = document.getElementById('rainfallChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Rainfall (mm)',
+              data: precipitation,
+              backgroundColor: 'rgba(54, 162, 235, 0.6)',
+              borderColor: 'rgba(54, 162, 235, 1)',
+              borderWidth: 1,
+            },
+            {
+              label: 'Irrigation Needed',
+              data: irrigationNeeded,
+              type: 'line',
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: true,
+              text: 'Rainfall and Irrigation Tracker',
+            },
+          },
+          scales: {
+            y: {
+              beginAtZero: true,
+              title: {
+                display: true,
+                text: 'Rainfall (mm)',
+              },
+            },
+          },
+        },
+      });
+    } catch (error) {
+      console.error('Error displaying the rainfall chart:', error);
+      alert('Failed to load rainfall data. Please try again later.');
+    }
+  });
+
   </script>
-  
-  
 </body>
 </html>
