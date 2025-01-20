@@ -3,27 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <link rel="stylesheet" href="/css/adminStyles.css">
+  <title>FieldAi Dashboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    .custom-bg {
+      background-color: #f8f9fa; /* Adjust as needed */
+    }
+
+    .sidebar {
+      height: 100vh;
+      position: sticky;
+      top: 0;
+    }
+
+    .content {
+      padding: 20px;
+    }
+
+    .static-bottom {
+      position: sticky;
+      bottom: 0;
+    }
+
+    #temperatureChart {
+      max-height: 400px; /* Adjust as needed */
+    }
+
+    .chart-container {
+      position: relative;
+      height: 400px; /* Fixed height for the chart container */
+    }
+  </style>
 </head>
 <body>
-    
-    <%- include('../../partials/user/header') %>
+  <%- include('../../partials/user/header') %>
 
-  <div class="d-flex">
-    <%- include('../../partials/user/sidebar') %>
+  <div class="container-fluid">
+    <div class="row">
+      <%- include('../../partials/user/sidebar') %>
 
-    <main class="p-4 flex-fill">
-        <h2>User Dashboard</h2>
-    </main>
+      <!-- Main Content -->
+      <main class="content col-md-9 col-lg-10">
+        <div class="row">
+          <div class="col-md-12">
+            <h4>Temperature Trends</h4>
+            <canvas id="temperatureChart"></canvas>
+          </div>
+        </div>
+      </main>
+    </div>
   </div>
 
+  <!-- Footer -->
   <footer class="bg-dark text-center text-white py-3 static-bottom">
     <%- include('../../partials/user/footer') %>
   </footer>
 
-  <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        // Extract the temperature data passed from the server
+        const temperatureData = <%- JSON.stringify(temperatureData) %>;
+  
+        // Prepare data for Chart.js
+        const labels = temperatureData.map((data) => data.date);
+        const tempMax = temperatureData.map((data) => data.temp_max);
+        const tempMin = temperatureData.map((data) => data.temp_min);
+  
+        // Create the line chart
+        const ctx = document.getElementById('temperatureChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Max Temperature (°C)',
+                data: tempMax,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: true,
+              },
+              {
+                label: 'Min Temperature (°C)',
+                data: tempMin,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'top',
+              },
+              title: {
+                display: true,
+                text: 'Daily Temperature Trends',
+              },
+            },
+          },
+        });
+      } catch (error) {
+        console.error('Error rendering the temperature chart:', error);
+        alert('Failed to load temperature data. Please try again later.');
+      }
+    });
+  </script>
+  
+  
 </body>
 </html>

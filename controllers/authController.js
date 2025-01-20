@@ -54,7 +54,12 @@ const loginUser = async (req, res) => {
             return res.status(400).send('Invalid username or password.');
         }
 
-        req.session.user = { id: user.id, username: user.username };
+        req.session.user = {
+            user_id: user.user_id, 
+            username: user.username,
+            latitude: user.latitude,
+            longitude: user.longitude,
+            role: user.role, };
 
         if (user.role == "Admin") {
             res.redirect('/admin/dashboard');
