@@ -1,8 +1,7 @@
 const express = require('express');
-const {
-    getTemperatureData,
-    getRainfallAndIrrigationData,
-} = require('../controllers/userController');
+const { getTemperatureData, getRainfallAndIrrigationData } = require('../controllers/userController');
+const multer = require('multer');
+const path = require('path');
 
 const router = express.Router();
 
@@ -13,13 +12,11 @@ const ensureAuthenticated = (req, res, next) => {
     return res.redirect('/login');
 };
 
-// Dashboard Route: Fetch and render all data
 router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
     try {
         const temperatureData = await getTemperatureData(req);
         const rainfallData = await getRainfallAndIrrigationData(req);
 
-        // Render the dashboard with both datasets
         res.render('pages/user/dashboard', {
             user: req.session.user,
             temperatureData,
@@ -31,7 +28,6 @@ router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
     }
 });
 
-// Separate endpoint for rainfall data (used by AJAX in frontend)
 router.get('/user/rainfall-irrigation', ensureAuthenticated, async (req, res) => {
     try {
         const rainfallData = await getRainfallAndIrrigationData(req);
