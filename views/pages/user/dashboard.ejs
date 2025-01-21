@@ -7,64 +7,79 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.2/dist/css/bootstrap.min.css">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <style>
+    body {
+      margin: 0;
+    }
+
     .custom-bg {
       background-color: #f8f9fa;
     }
 
-    .sidebar {
-      height: 100vh;
+    header {
       position: sticky;
       top: 0;
+      z-index: 1030;
+    }
+
+    .sidebar {
+      position: fixed;
+      top: 50px;
+      left: 0;
+      height: calc(100vh - 50px);
+      width: 240px;
+      background-color: #f8f9fa;
+      border-right: 1px solid #ddd;
+      overflow-y: auto;
     }
 
     .content {
+      margin-left: 240px;
       padding: 20px;
+      scroll-behavior: smooth;
+    }
+
+    .content-section {
+      margin-bottom: 30px; 
+      scroll-margin-left: 240px;
+    }
+
+    #temperatureChart, #rainfallChart {
+      max-height: 400px;
     }
 
     .static-bottom {
       position: sticky;
       bottom: 0;
     }
-
-    #temperatureChart {
-      max-height: 400px;
-    }
-
-    .chart-container {
-      position: relative;
-      height: 400px;
-    }
   </style>
 </head>
 <body>
-  <%- include('../../partials/user/header') %>
+  <header>
+    <%- include('../../partials/user/header') %>
+  </header>
 
-  <div class="container-fluid">
-    <div class="row">
+  <div class="container-fluid px-0">
+    <div class="row no-gutters">
       <%- include('../../partials/user/sidebar') %>
 
-      <main class="content col-md-9 col-lg-10">
-        <div class="row">
-          <div class="col-md-12">
-            <h4>Temperature Trends</h4>
-            <canvas id="temperatureChart"></canvas>
-          </div>
+      <main class="content col">
+        <div id="temperature-section" class="content-section">
+          <h4>Temperature Trends</h4>
+          <canvas id="temperatureChart"></canvas>
         </div>
-        <div class="row">
-          <div class="col-md-12">
-            <h4>Rainfall and Irrigation Tracker</h4>
-            <canvas id="rainfallChart"></canvas>
-          </div>
+
+        <div id="rainfall-section" class="content-section">
+          <h4>Rainfall and Irrigation Tracker</h4>
+          <canvas id="rainfallChart"></canvas>
         </div>
-        
       </main>
     </div>
   </div>
 
-  <!-- Footer -->
   <footer class="bg-dark text-center text-white py-3 static-bottom">
     <%- include('../../partials/user/footer') %>
   </footer>
+
 
   <script>
     document.addEventListener('DOMContentLoaded', () => {
