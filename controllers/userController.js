@@ -28,32 +28,4 @@ const getTemperatureData = async (req) => {
     }));
 };
 
-const getRainfallAndIrrigationData = async (req) => {
-    const { latitude, longitude } = req.session.user;
-
-    if (!latitude || !longitude) {
-        throw new Error('Location data not found in session.');
-    }
-
-    const weatherApiUrl = 'https://api.open-meteo.com/v1/forecast';
-    const params = {
-        latitude,
-        longitude,
-        daily: 'precipitation_sum',
-        timezone: 'auto',
-    };
-
-    const response = await axios.get(weatherApiUrl, { params });
-
-    if (response.status !== 200 || !response.data || !response.data.daily) {
-        throw new Error(`Unexpected API response: ${response.status}`);
-    }
-
-    return response.data.daily.time.map((date, index) => ({
-        date,
-        precipitation: response.data.daily.precipitation_sum[index],
-        irrigationNeeded: response.data.daily.precipitation_sum[index] < 5,
-    }));
-};
-
-module.exports = { getTemperatureData, getRainfallAndIrrigationData };
+module.exports = { getTemperatureData };
