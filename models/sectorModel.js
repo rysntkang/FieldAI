@@ -9,7 +9,6 @@ const getSectorsByUserId = async (userId) => {
 };
 
 const addSector = async (userId, name, latitude, longitude) => {
-    console.log(userId, name, latitude, longitude);
     const [result] = await db.execute(
         'INSERT INTO sectors (user_id, name, latitude, longitude) VALUES (?, ?, ?, ?)',
         [userId, name, latitude, longitude]

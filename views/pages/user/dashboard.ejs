@@ -130,7 +130,6 @@
 
         marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
 
-        // Update latitude and longitude values
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
 
@@ -170,57 +169,56 @@
     }
   }
 
-    // Fetch weather data for the temperature chart
-    document.addEventListener('DOMContentLoaded', async () => {
-      initMap();
-      fetchSectors();
+  document.addEventListener('DOMContentLoaded', async () => {
+    initMap();
+    fetchSectors();
 
-      try {
-        const temperatureData = <%- JSON.stringify(temperatureData) %>; // Provided by server
+    try {
+      const temperatureData = <%- JSON.stringify(temperatureData) %>;
 
-        const labels = temperatureData.map(data => data.date);
-        const tempMax = temperatureData.map(data => data.temp_max);
-        const tempMin = temperatureData.map(data => data.temp_min);
+      const labels = temperatureData.map(data => data.date);
+      const tempMax = temperatureData.map(data => data.temp_max);
+      const tempMin = temperatureData.map(data => data.temp_min);
 
-        const ctx = document.getElementById('temperatureChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: 'Max Temperature (°C)',
-                data: tempMax,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                fill: true,
-              },
-              {
-                label: 'Min Temperature (°C)',
-                data: tempMin,
-                borderColor: 'rgba(54, 162, 235, 1)',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                fill: true,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: {
-                position: 'top',
-              },
-              title: {
-                display: true,
-                text: 'Daily Temperature Trends',
-              },
+      const ctx = document.getElementById('temperatureChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Max Temperature (°C)',
+              data: tempMax,
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              fill: true,
+            },
+            {
+              label: 'Min Temperature (°C)',
+              data: tempMin,
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: {
+              position: 'top',
+            },
+            title: {
+              display: true,
+              text: 'Daily Temperature Trends',
             },
           },
-        });
-      } catch (error) {
-        console.error('Error rendering temperature chart:', error);
-      }
-    });
+        },
+      });
+    } catch (error) {
+      console.error('Error rendering temperature chart:', error);
+    }
+  });
   </script>
 </body>
 </html>
