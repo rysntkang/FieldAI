@@ -1,5 +1,5 @@
 const express = require('express');
-const { getDashboardData, createSector } = require('../controllers/userController');
+const { getDashboardData, createSector } = require('../controllers/sectorController');
 const router = express.Router();
 
 const ensureAuthenticated = (req, res, next) => {
@@ -24,15 +24,10 @@ router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
     }
 });
 
-router.post('/user/addSector', ensureAuthenticated, createSector, async (req, res) => {
+router.post('/user/addSector', ensureAuthenticated, async (req, res) => {
     try {
-        const { temperatureData, sectors } = await getDashboardData(req);
-
-        res.render('pages/user/dashboard', {
-            user: req.session.user,
-            temperatureData,
-            sectors,
-        });
+        await createSector(req, res);
+        res.redirect('/user/dashboard');
     } catch (error) {
         console.error('Error rendering dashboard:', error.message || error);
         res.status(500).send('An error occurred while loading the dashboard.');
