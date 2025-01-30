@@ -34,5 +34,10 @@ router.post('/user/addSector', ensureAuthenticated, async (req, res) => {
     }
     }
 );
+
+router.get('/upload', (req, res) => {
+    const sectorId = req.query.sectorId;
+    res.render('pages/user/upload', { sectorId });
+});
     
 module.exports = router;
