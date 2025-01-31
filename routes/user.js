@@ -2,6 +2,9 @@ const express = require('express');
 const { getDashboardData, createSector } = require('../controllers/sectorController');
 const router = express.Router();
 
+const upload = require('../middleware/upload');
+const { handleImageUpload } = require('../controllers/imageController');
+
 const ensureAuthenticated = (req, res, next) => {
     if (req.session && req.session.user) {
         return next();
@@ -39,5 +42,7 @@ router.get('/upload', (req, res) => {
     const sectorId = req.query.sectorId;
     res.render('pages/user/upload', { sectorId });
 });
+
+router.post('/upload/image', ensureAuthenticated, upload.array('images', 5), handleImageUpload);
     
 module.exports = router;

@@ -56,7 +56,9 @@
               <div class="card-body">
                 <h5 class="card-title"><%= sector.name %></h5>
                 <p class="card-text">Lat: <%= sector.latitude %>, Lng: <%= sector.longitude %></p>
-                <a href="/upload?sectorId=<%= sector.sector_id %>" class="btn btn-primary btn-sm">Upload Images</a>
+                <button class="btn btn-primary btn-sm upload-btn" data-toggle="modal" data-target="#uploadImageModal" data-sectorid="<%= sector.sector_id %>">
+                Upload Images
+                </button>
                 <a href="/results/<%= sector.sector_id %>" class="btn btn-secondary btn-sm">View Results</a>
               </div>
             </div>
@@ -104,6 +106,45 @@
         </div>
       </div>
     </div>
+
+    <!-- Add after addSectorModal -->
+    <div class="modal fade" id="uploadImageModal" tabindex="-1" role="dialog" aria-hidden="true">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Upload Corn Images</h5>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+          </div>
+          <form id="uploadForm" enctype="multipart/form-data">
+            <div class="modal-body">
+                <input type="hidden" id="uploadSectorId" name="sectorId">
+                <div class="form-group">
+                    <label>Select Images (max 5)</label>
+                    <div class="custom-file">
+                        <input 
+                            type="file" 
+                            name="images"
+                            class="custom-file-input" 
+                            id="imageInput" 
+                            multiple
+                            accept="image/*"
+                        >
+                        <label class="custom-file-label" for="imageInput">Choose files</label>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Upload Images</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    
   </div>
 
   <footer class="bg-dark text-center text-white py-3 static-bottom">
@@ -213,6 +254,43 @@
     } catch (error) {
       console.error('Error rendering temperature chart:', error);
     }
+  });
+
+  document.querySelectorAll('.upload-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+          const sectorId = btn.dataset.sectorid;
+          document.getElementById('uploadSectorId').value = sectorId;
+      });
+  });
+
+  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const formData = new FormData(e.target);
+      
+      try {
+          const response = await fetch('/upload/image', {
+              method: 'POST',
+              body: formData
+          });
+          
+          const result = await response.json();
+          
+          if (response.ok) {
+              $('#uploadImageModal').modal('hide');
+              alert(result.message);
+          } else {
+              throw new Error(result.error || 'Upload failed');
+          }
+      } catch (error) {
+          alert(error.message);
+      }
+  });
+
+  document.getElementById('imageInput').addEventListener('change', function(e) {
+      const label = this.nextElementSibling;
+      const files = Array.from(this.files).map(f => f.name);
+      label.textContent = files.join(', ') || 'Choose files';
   });
   </script>
 </body>
