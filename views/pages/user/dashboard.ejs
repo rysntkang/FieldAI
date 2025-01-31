@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-
   <title>FieldAi Dashboard</title>
   <%- include('../../partials/user/head') %>
   <style>
@@ -34,9 +33,6 @@
     .sector-card {
       margin-bottom: 20px;
     }
-    .modal-backdrop {
-      background-color: rgba(0, 0, 0, 0.8);
-    }
     #map {
       height: 300px;
       margin-top: 10px;
@@ -57,9 +53,11 @@
                 <h5 class="card-title"><%= sector.name %></h5>
                 <p class="card-text">Lat: <%= sector.latitude %>, Lng: <%= sector.longitude %></p>
                 <button class="btn btn-primary btn-sm upload-btn" data-toggle="modal" data-target="#uploadImageModal" data-sectorid="<%= sector.sector_id %>">
-                Upload Images
+                  Upload Images
                 </button>
-                <a href="/results/<%= sector.sector_id %>" class="btn btn-secondary btn-sm">View Results</a>
+                <button class="btn btn-secondary btn-sm view-results-btn" data-toggle="modal" data-target="#resultsModal" data-sectorid="<%= sector.sector_id %>">
+                  View Results
+                </button>
               </div>
             </div>
           </div>
@@ -68,7 +66,12 @@
         <p>No sectors available. Please add a new sector to get started.</p>
       <% } %>
     </div>
-    <button class="btn btn-success mt-3" data-toggle="modal" data-target="#addSectorModal">Add New Sector</button>
+    
+    <button class="btn btn-success mt-3" 
+            data-toggle="modal" 
+            data-target="#addSectorModal">
+      Add New Sector
+    </button>
     <hr>
 
     <h3>Weather Data</h3>
@@ -78,73 +81,9 @@
     </div>
     <hr>
 
-    <div class="modal fade" id="addSectorModal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Add New Sector</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form id="addSectorForm" action="/user/addSector" method="POST">
-            <div class="modal-body">
-                <div class="form-group">
-                    <label for="sectorName">Sector Name</label>
-                    <input type="text" id="sectorName" name="sectorName" class="form-control" required>
-                </div>
-                <label for="map">Select Sector Location</label>
-                <div id="map"></div>
-                <input type="hidden" id="latitude" name="latitude">
-                <input type="hidden" id="longitude" name="longitude">
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Save Sector</button>
-            </div>
-          </form>        
-        </div>
-      </div>
-    </div>
-
-    <!-- Add after addSectorModal -->
-    <div class="modal fade" id="uploadImageModal" tabindex="-1" role="dialog" aria-hidden="true">
-      <div class="modal-dialog" role="document">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title">Upload Corn Images</h5>
-            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-              <span aria-hidden="true">&times;</span>
-            </button>
-          </div>
-          <form id="uploadForm" enctype="multipart/form-data">
-            <div class="modal-body">
-                <input type="hidden" id="uploadSectorId" name="sectorId">
-                <div class="form-group">
-                    <label>Select Images (max 5)</label>
-                    <div class="custom-file">
-                        <input 
-                            type="file" 
-                            name="images"
-                            class="custom-file-input" 
-                            id="imageInput" 
-                            multiple
-                            accept="image/*"
-                        >
-                        <label class="custom-file-label" for="imageInput">Choose files</label>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="submit" class="btn btn-primary">Upload Images</button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-
-    
+    <%- include('../../partials/user/modals/addSector') %>
+    <%- include('../../partials/user/modals/upload') %>
+    <%- include('../../partials/user/modals/results') %>
   </div>
 
   <footer class="bg-dark text-center text-white py-3 static-bottom">
@@ -153,9 +92,14 @@
 
   <%- include('../../partials/user/scripts') %>
   <script>
-    let map, marker;
+    $('#addSectorModal').on('shown.bs.modal', function() {
+      initMap();
+    });
 
+    let map, marker;
     function initMap() {
+      if(map) map.remove(); // Clear existing map
+      
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
 
@@ -164,7 +108,9 @@
           attribution: '© OpenStreetMap contributors',
         }).addTo(map);
 
-        marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
+        marker = L.marker([latitude, longitude], { 
+          draggable: true 
+        }).addTo(map);
 
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
@@ -177,120 +123,114 @@
       });
     }
 
-    async function fetchSectors() {
-    try {
-        const response = await fetch('/sectors');
-        const sectors = await response.json();
+    // Temperature Chart
+    document.addEventListener('DOMContentLoaded', () => {
+      try {
+        const temperatureData = <%- JSON.stringify(temperatureData) %>;
+        const labels = temperatureData.map(data => data.date);
+        const tempMax = temperatureData.map(data => data.temp_max);
+        const tempMin = temperatureData.map(data => data.temp_min);
 
-        const container = document.getElementById('sectors-container');
-        container.innerHTML = '';
-
-        sectors.forEach(sector => {
-          const card = document.createElement('div');
-          card.className = 'col-md-3 sector-card';
-          card.innerHTML = `
-            <div class="card">
-              <div class="card-body">
-                <h5 class="card-title">${sector.name}</h5>
-                <p class="card-text">Latitutde: ${sector.latitude}, Longitude: ${sector.longitude}</p>
-                <a href="/upload?sectorId=${sector.sector_id}" class="btn btn-primary btn-sm">Upload Images</a>
-                <a href="/results/${sector.sector_id}" class="btn btn-secondary btn-sm">View Results</a>
-              </div>
-            </div>
-            `;
-            container.appendChild(card);
-        });
-    } catch (error) {
-      console.error('Failed to fetch sectors:', error);
-    }
-  }
-
-  document.addEventListener('DOMContentLoaded', async () => {
-    initMap();
-    fetchSectors();
-
-    try {
-      const temperatureData = <%- JSON.stringify(temperatureData) %>;
-
-      const labels = temperatureData.map(data => data.date);
-      const tempMax = temperatureData.map(data => data.temp_max);
-      const tempMin = temperatureData.map(data => data.temp_min);
-
-      const ctx = document.getElementById('temperatureChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Max Temperature (°C)',
-              data: tempMax,
-              borderColor: 'rgba(255, 99, 132, 1)',
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
-              fill: true,
-            },
-            {
-              label: 'Min Temperature (°C)',
-              data: tempMin,
-              borderColor: 'rgba(54, 162, 235, 1)',
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              fill: true,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: {
-              position: 'top',
-            },
-            title: {
-              display: true,
-              text: 'Daily Temperature Trends',
-            },
+        const ctx = document.getElementById('temperatureChart').getContext('2d');
+        new Chart(ctx, {
+          type: 'line',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Max Temperature (°C)',
+                data: tempMax,
+                borderColor: 'rgba(255, 99, 132, 1)',
+                backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                fill: true,
+              },
+              {
+                label: 'Min Temperature (°C)',
+                data: tempMin,
+                borderColor: 'rgba(54, 162, 235, 1)',
+                backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                fill: true,
+              },
+            ],
           },
-        },
-      });
-    } catch (error) {
-      console.error('Error rendering temperature chart:', error);
-    }
-  });
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position: 'top' },
+              title: { display: true, text: 'Daily Temperature Trends' }
+            }
+          }
+        });
+      } catch (error) {
+        console.error('Error rendering temperature chart:', error);
+      }
+    });
 
-  document.querySelectorAll('.upload-btn').forEach(btn => {
-      btn.addEventListener('click', () => {
-          const sectorId = btn.dataset.sectorid;
-          document.getElementById('uploadSectorId').value = sectorId;
-      });
+    document.querySelectorAll('.upload-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const sectorId = btn.dataset.sectorid;
+      document.getElementById('uploadSectorId').value = sectorId;
+    });
   });
 
   document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
+    e.preventDefault();
+    const formData = new FormData(e.target);
+
+    try {
+      const response = await fetch('/upload/image', {
+        method: 'POST',
+        body: formData
+      });
       
-      const formData = new FormData(e.target);
-      
-      try {
-          const response = await fetch('/upload/image', {
-              method: 'POST',
-              body: formData
-          });
-          
-          const result = await response.json();
-          
-          if (response.ok) {
-              $('#uploadImageModal').modal('hide');
-              alert(result.message);
-          } else {
-              throw new Error(result.error || 'Upload failed');
-          }
-      } catch (error) {
-          alert(error.message);
+      const result = await response.json();
+      if (response.ok) {
+        alert(result.message);
+        $('#uploadImageModal').modal('hide');
+      } else {
+        throw new Error(result.error || 'Upload failed');
       }
+    } catch (error) {
+      alert(error.message);
+    }
   });
 
-  document.getElementById('imageInput').addEventListener('change', function(e) {
-      const label = this.nextElementSibling;
-      const files = Array.from(this.files).map(f => f.name);
-      label.textContent = files.join(', ') || 'Choose files';
+  document.getElementById('imageInput').addEventListener('change', function() {
+    const label = this.nextElementSibling;
+    label.textContent = this.files.length > 0 
+      ? `${this.files.length} files selected` 
+      : 'Choose files';
+  });
+
+  // Results Modal Handler
+document.querySelectorAll('.view-results-btn').forEach(btn => {
+  btn.addEventListener('click', async () => {
+    const sectorId = btn.dataset.sectorid;
+    const modal = $('#resultsModal');
+    const content = document.getElementById('resultsContent');
+    
+    try {
+      content.innerHTML = `
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>`;
+
+      const response = await fetch(`/results/${sectorId}`);
+      const html = await response.text();
+      
+      content.innerHTML = html;
+      document.getElementById('resultsSectorId').textContent = sectorId;
+      modal.modal('show');
+      
+    } catch (error) {
+      content.innerHTML = `
+        <div class="alert alert-danger">
+          Failed to load results: ${error.message}
+        </div>`;
+    }
+    });
   });
   </script>
 </body>

@@ -47,19 +47,21 @@ router.get('/upload', (req, res) => {
 router.post('/upload/image', ensureAuthenticated, upload.array('images', 5), handleImageUpload);
 
 router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
-    try {
-      const sectorId = req.params.sectorId;
-      const attempts = await getUploadAttempts(sectorId);
-      
-      for (const attempt of attempts) {
-        attempt.images = await getAttemptImages(attempt.upload_id);
-      }
-  
-      res.render('pages/user/results', { sectorId, attempts });
-    } catch (error) {
-      console.error('Results error:', error);
-      res.status(500).send('Error loading results');
+  try {
+    const sectorId = req.params.sectorId;
+    const attempts = await getUploadAttempts(sectorId);
+    
+    for (const attempt of attempts) {
+      attempt.images = await getAttemptImages(attempt.upload_id);
     }
-  });
+
+    res.render('partials/user/modals/resultContent', {
+      attempts,
+      sectorId
+    });
+  } catch (error) {
+    res.status(500).send('Error loading results');
+  }
+});
     
 module.exports = router;

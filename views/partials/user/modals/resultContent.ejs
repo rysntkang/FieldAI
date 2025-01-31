@@ -1,0 +1,38 @@
+<% if (attempts && attempts.length > 0) { %>
+  <div class="container-fluid">
+    <% attempts.forEach(attempt => { %>
+      <div class="card mb-3">
+        <div class="card-header">
+          <h5>Upload Attempt: <%= attempt.upload_date.toLocaleDateString() %></h5>
+        </div>
+        <div class="card-body">
+          <div class="row">
+            <% attempt.images.forEach(image => { %>
+              <div class="col-md-4 mb-3">
+                <div class="card">
+                  <img src="<%= image.file_path %>" class="card-img-top">
+                  <div class="card-body">
+                    <% if (image.status === 'completed') { %>
+                      <span class="badge badge-success">
+                        <%= image.corn_count %> corns
+                      </span>
+                      <small class="text-muted">
+                        (<%= image.processing_time %>s)
+                      </small>
+                    <% } else { %>
+                      <span class="badge badge-warning">
+                        <%= image.status %>
+                      </span>
+                    <% } %>
+                  </div>
+                </div>
+              </div>
+            <% }); %>
+          </div>
+        </div>
+      </div>
+    <% }); %>
+  </div>
+<% } else { %>
+  <div class="alert alert-info">No results found for this sector.</div>
+<% } %>
