@@ -37,6 +37,21 @@
       height: 300px;
       margin-top: 10px;
     }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      .content {
+        margin-left: 0;
+      }
+      .sector-card {
+        width: 100%;
+      }
+    }
   </style>
 </head>
 <body>
@@ -52,10 +67,16 @@
               <div class="card-body">
                 <h5 class="card-title"><%= sector.name %></h5>
                 <p class="card-text">Lat: <%= sector.latitude %>, Lng: <%= sector.longitude %></p>
-                <button class="btn btn-primary btn-sm upload-btn" data-toggle="modal" data-target="#uploadImageModal" data-sectorid="<%= sector.sector_id %>">
+                <button class="btn btn-primary btn-sm upload-btn" 
+                        data-toggle="modal" 
+                        data-target="#uploadImageModal" 
+                        data-sectorid="<%= sector.sector_id %>">
                   Upload Images
                 </button>
-                <button class="btn btn-secondary btn-sm view-results-btn" data-toggle="modal" data-target="#resultsModal" data-sectorid="<%= sector.sector_id %>">
+                <button class="btn btn-secondary btn-sm view-results-btn" 
+                        data-toggle="modal" 
+                        data-target="#resultsModal" 
+                        data-sectorid="<%= sector.sector_id %>">
                   View Results
                 </button>
               </div>
@@ -67,19 +88,20 @@
       <% } %>
     </div>
     
-    <button class="btn btn-success mt-3" 
-            data-toggle="modal" 
-            data-target="#addSectorModal">
+    <button class="btn btn-success mt-3" data-toggle="modal" data-target="#addSectorModal">
       Add New Sector
     </button>
     <hr>
 
-    <h3>Weather Data</h3>
-    <div id="temperature-section" class="content-section">
-      <h4>Temperature Forecast Trends</h4>
-      <canvas id="temperatureChart"></canvas>
-    </div>
-    <hr>
+    <!-- Weather Data Section -->
+    <% if (temperatureData && temperatureData.length > 0) { %>
+      <h3>Weather Data</h3>
+      <div id="temperature-section" class="content-section">
+        <h4>Temperature Forecast Trends</h4>
+        <canvas id="temperatureChart"></canvas>
+      </div>
+      <hr>
+    <% } %>
 
     <%- include('../../partials/user/modals/addSector') %>
     <%- include('../../partials/user/modals/upload') %>
@@ -92,26 +114,26 @@
 
   <%- include('../../partials/user/scripts') %>
   <script>
+    // Map Initialization
     $('#addSectorModal').on('shown.bs.modal', function() {
       initMap();
+      setTimeout(() => map.invalidateSize(), 100);
     });
 
     let map, marker;
     function initMap() {
-      if(map) map.remove(); // Clear existing map
+      if (map) {
+        map.off();
+        map.remove();
+        map = null;
+      }
       
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
-
         map = L.map('map').setView([latitude, longitude], 13);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-          attribution: '© OpenStreetMap contributors',
-        }).addTo(map);
-
-        marker = L.marker([latitude, longitude], { 
-          draggable: true 
-        }).addTo(map);
-
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
+        
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
 
@@ -125,91 +147,98 @@
 
     // Temperature Chart
     document.addEventListener('DOMContentLoaded', () => {
-      try {
-        const temperatureData = <%- JSON.stringify(temperatureData) %>;
-        const labels = temperatureData.map(data => data.date);
-        const tempMax = temperatureData.map(data => data.temp_max);
-        const tempMin = temperatureData.map(data => data.temp_min);
-
-        const ctx = document.getElementById('temperatureChart').getContext('2d');
-        new Chart(ctx, {
-          type: 'line',
-          data: {
-            labels: labels,
-            datasets: [
-              {
-                label: 'Max Temperature (°C)',
-                data: tempMax,
-                borderColor: 'rgba(255, 99, 132, 1)',
-                backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                fill: true,
-              },
-              {
-                label: 'Min Temperature (°C)',
-                data: tempMin,
-                borderColor: 'rgba(54, 162, 235, 1)',
-                backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                fill: true,
-              },
-            ],
-          },
-          options: {
-            responsive: true,
-            plugins: {
-              legend: { position: 'top' },
-              title: { display: true, text: 'Daily Temperature Trends' }
-            }
-          }
-        });
-      } catch (error) {
-        console.error('Error rendering temperature chart:', error);
-      }
-    });
-
-    document.querySelectorAll('.upload-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-      const sectorId = btn.dataset.sectorid;
-      document.getElementById('uploadSectorId').value = sectorId;
-    });
-  });
-
-  document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-
-    try {
-      const response = await fetch('/upload/image', {
-        method: 'POST',
-        body: formData
-      });
+      const temperatureData = <%- JSON.stringify(temperatureData) %>;
+      const tempSection = document.getElementById('temperature-section');
       
-      const result = await response.json();
-      if (response.ok) {
-        alert(result.message);
-        $('#uploadImageModal').modal('hide');
-      } else {
-        throw new Error(result.error || 'Upload failed');
+      if (!temperatureData || temperatureData.length === 0) {
+        tempSection.hidden = true;
+        return;
       }
-    } catch (error) {
-      alert(error.message);
-    }
-  });
 
-  document.getElementById('imageInput').addEventListener('change', function() {
-    const label = this.nextElementSibling;
-    label.textContent = this.files.length > 0 
-      ? `${this.files.length} files selected` 
-      : 'Choose files';
-  });
+      const ctx = document.getElementById('temperatureChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: temperatureData.map(data => data.date),
+          datasets: [
+            {
+              label: 'Max Temperature (°C)',
+              data: temperatureData.map(data => data.temp_max),
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              fill: true,
+            },
+            {
+              label: 'Min Temperature (°C)',
+              data: temperatureData.map(data => data.temp_min),
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Daily Temperature Trends' }
+          }
+        }
+      });
+    });
 
-  // Results Modal Handler
-document.querySelectorAll('.view-results-btn').forEach(btn => {
-  btn.addEventListener('click', async () => {
-    const sectorId = btn.dataset.sectorid;
-    const modal = $('#resultsModal');
-    const content = document.getElementById('resultsContent');
-    
-    try {
+    // Event Delegation for Buttons
+    document.getElementById('sectors-container').addEventListener('click', (e) => {
+      const uploadBtn = e.target.closest('.upload-btn');
+      const resultsBtn = e.target.closest('.view-results-btn');
+      
+      if (uploadBtn) {
+        document.getElementById('uploadSectorId').value = uploadBtn.dataset.sectorid;
+      }
+      
+      if (resultsBtn) {
+        loadResultsModal(resultsBtn.dataset.sectorid);
+      }
+    });
+
+    // File Upload Handling
+    document.getElementById('imageInput').addEventListener('change', function() {
+      const maxFiles = 5;
+      if (this.files.length > maxFiles) {
+        alert(`Maximum ${maxFiles} files allowed`);
+        this.value = '';
+        return;
+      }
+      this.nextElementSibling.textContent = this.files.length > 0 
+        ? `${this.files.length} files selected` 
+        : 'Choose files';
+    });
+
+    // Upload Form Submission
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      try {
+        const response = await fetch('/upload/image', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) throw new Error(await response.text());
+        alert('Upload successful!');
+        $('#uploadImageModal').modal('hide');
+        location.reload(); // Refresh to show new upload
+      } catch (error) {
+        alert(`Upload failed: ${error.message}`);
+      }
+    });
+
+    // Results Modal Handler
+    async function loadResultsModal(sectorId) {
+      const modal = $('#resultsModal');
+      const content = document.getElementById('resultsContent');
+      
       content.innerHTML = `
         <div class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
@@ -217,21 +246,18 @@ document.querySelectorAll('.view-results-btn').forEach(btn => {
           </div>
         </div>`;
 
-      const response = await fetch(`/results/${sectorId}`);
-      const html = await response.text();
-      
-      content.innerHTML = html;
-      document.getElementById('resultsSectorId').textContent = sectorId;
-      modal.modal('show');
-      
-    } catch (error) {
-      content.innerHTML = `
-        <div class="alert alert-danger">
-          Failed to load results: ${error.message}
-        </div>`;
+      try {
+        const response = await fetch(`/results/${sectorId}`);
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        content.innerHTML = await response.text();
+        modal.modal('show');
+      } catch (error) {
+        content.innerHTML = `
+          <div class="alert alert-danger">
+            Failed to load results: ${error.message}
+          </div>`;
+      }
     }
-    });
-  });
   </script>
 </body>
 </html>
