@@ -1,5 +1,7 @@
+const { upload } = require('../middleware/upload');
 const { createUploadAttemptWithImages } = require('../models/imageModel');
 const { processImage } = require('../services/mlService');
+const path = require('path');
 
 const handleImageUpload = async (req, res) => {
   try {
@@ -11,11 +13,14 @@ const handleImageUpload = async (req, res) => {
     const files = req.files.map(file => ({
       file_path: `/uploads/${file.filename}`
     }));
-    const uploadId = await createUploadAttemptWithImages(sectorId, files);
+    const uploadResults = await createUploadAttemptWithImages(sectorId, files);
+    console.log(uploadResults);
 
     // Machine Learning Model Part
     const imageIds = files.map((_, index) => uploadId * 1000 + index);
-    imageIds.forEach(id => processImage(id));
+    imageIds.forEach(id => processImage(id,
+      path.join(__dirname, `../public${files[id % files.length].file_path}`)
+    ));
 
     res.json({ 
       success: true, 
