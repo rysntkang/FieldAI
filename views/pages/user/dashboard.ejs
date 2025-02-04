@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>FieldAi Dashboard</title>
+  <%- include('../../partials/user/head') %>
+  <style>
+    .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #343a40;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      padding: 15px 20px;
+      display: block;
+    }
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+    .sidebar a.active {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+    .sector-card {
+      margin-bottom: 20px;
+    }
+    #map {
+      height: 300px;
+      margin-top: 10px;
+    }
+
+    /* Responsive Styles */
+    @media (max-width: 768px) {
+      .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+      }
+      .content {
+        margin-left: 0;
+      }
+      .sector-card {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <%- include('../../partials/user/sidebar') %>
+
+  <div class="content">
+    <h3>Your Sectors</h3>
+    <div class="row" id="sectors-container">
+      <% if (sectors.length > 0) { %>
+        <% sectors.forEach(sector => { %>
+          <div class="col-md-3 sector-card">
+            <div class="card">
+              <div class="card-body">
+                <h5 class="card-title"><%= sector.name %></h5>
+                <p class="card-text">Lat: <%= sector.latitude %>, Lng: <%= sector.longitude %></p>
+                <button class="btn btn-primary btn-sm upload-btn" 
+                        data-toggle="modal" 
+                        data-target="#uploadImageModal" 
+                        data-sectorid="<%= sector.sector_id %>">
+                  Upload Images
+                </button>
+                <button class="btn btn-secondary btn-sm view-results-btn" 
+                        data-toggle="modal" 
+                        data-target="#resultsModal" 
+                        data-sectorid="<%= sector.sector_id %>">
+                  View Results
+                </button>
+              </div>
+            </div>
+          </div>
+        <% }); %>
+      <% } else { %>
+        <p>No sectors available. Please add a new sector to get started.</p>
+      <% } %>
+    </div>
+    
+    <button class="btn btn-success mt-3" data-toggle="modal" data-target="#addSectorModal">
+      Add New Sector
+    </button>
+    <hr>
+
+    <!-- Weather Data Section -->
+    <% if (temperatureData && temperatureData.length > 0) { %>
+      <h3>Weather Data</h3>
+      <div id="temperature-section" class="content-section">
+        <h4>Temperature Forecast Trends</h4>
+        <canvas id="temperatureChart"></canvas>
+      </div>
+      <hr>
+    <% } %>
+
+    <%- include('../../partials/user/modals/addSector') %>
+    <%- include('../../partials/user/modals/upload') %>
+    <%- include('../../partials/user/modals/results') %>
+  </div>
+
+  <footer class="bg-dark text-center text-white py-3 static-bottom">
+    <%- include('../../partials/user/footer') %>
+  </footer>
+
+  <%- include('../../partials/user/scripts') %>
+  <script>
+    // Map Initialization
+    $('#addSectorModal').on('shown.bs.modal', function() {
+      initMap();
+      setTimeout(() => map.invalidateSize(), 100);
+    });
+
+    let map, marker;
+    function initMap() {
+      if (map) {
+        map.off();
+        map.remove();
+        map = null;
+      }
+      
+      navigator.geolocation.getCurrentPosition(position => {
+        const { latitude, longitude } = position.coords;
+        map = L.map('map').setView([latitude, longitude], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+        marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
+        
+        document.getElementById('latitude').value = latitude;
+        document.getElementById('longitude').value = longitude;
+
+        marker.on('dragend', () => {
+          const { lat, lng } = marker.getLatLng();
+          document.getElementById('latitude').value = lat;
+          document.getElementById('longitude').value = lng;
+        });
+      });
+    }
+
+    // Temperature Chart
+    document.addEventListener('DOMContentLoaded', () => {
+      const temperatureData = <%- JSON.stringify(temperatureData) %>;
+      const tempSection = document.getElementById('temperature-section');
+      
+      if (!temperatureData || temperatureData.length === 0) {
+        tempSection.hidden = true;
+        return;
+      }
+
+      const ctx = document.getElementById('temperatureChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: temperatureData.map(data => data.date),
+          datasets: [
+            {
+              label: 'Max Temperature (°C)',
+              data: temperatureData.map(data => data.temp_max),
+              borderColor: 'rgba(255, 99, 132, 1)',
+              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+              fill: true,
+            },
+            {
+              label: 'Min Temperature (°C)',
+              data: temperatureData.map(data => data.temp_min),
+              borderColor: 'rgba(54, 162, 235, 1)',
+              backgroundColor: 'rgba(54, 162, 235, 0.2)',
+              fill: true,
+            },
+          ],
+        },
+        options: {
+          responsive: true,
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: 'Daily Temperature Trends' }
+          }
+        }
+      });
+    });
+
+    // Event Delegation for Buttons
+    document.getElementById('sectors-container').addEventListener('click', (e) => {
+      const uploadBtn = e.target.closest('.upload-btn');
+      const resultsBtn = e.target.closest('.view-results-btn');
+      
+      if (uploadBtn) {
+        document.getElementById('uploadSectorId').value = uploadBtn.dataset.sectorid;
+      }
+      
+      if (resultsBtn) {
+        loadResultsModal(resultsBtn.dataset.sectorid);
+      }
+    });
+
+    // File Upload Handling
+    document.getElementById('imageInput').addEventListener('change', function() {
+      const maxFiles = 5;
+      if (this.files.length > maxFiles) {
+        alert(`Maximum ${maxFiles} files allowed`);
+        this.value = '';
+        return;
+      }
+      this.nextElementSibling.textContent = this.files.length > 0 
+        ? `${this.files.length} files selected` 
+        : 'Choose files';
+    });
+
+    // Upload Form Submission
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      try {
+        const response = await fetch('/upload/image', {
+          method: 'POST',
+          body: formData
+        });
+        
+        if (!response.ok) throw new Error(await response.text());
+        alert('Upload successful!');
+        $('#uploadImageModal').modal('hide');
+        location.reload(); // Refresh to show new upload
+      } catch (error) {
+        alert(`Upload failed: ${error.message}`);
+      }
+    });
+
+    // Results Modal Handler
+    async function loadResultsModal(sectorId) {
+      const modal = $('#resultsModal');
+      const content = document.getElementById('resultsContent');
+      
+      content.innerHTML = `
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>`;
+
+      try {
+        const response = await fetch(`/results/${sectorId}`);
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        content.innerHTML = await response.text();
+        modal.modal('show');
+      } catch (error) {
+        content.innerHTML = `
+          <div class="alert alert-danger">
+            Failed to load results: ${error.message}
+          </div>`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pricing - FieldAI</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .pricing {
+        padding: 50px 20px;
+    }
+    .pricing-card {
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        transition: transform 0.2s ease-in-out;
+    }
+    .pricing-card:hover {
+        transform: scale(1.05);
+    }
+    .pricing-card h4 {
+        font-weight: bold;
+    }
+    .btn-select {
+        margin-top: 20px;
+        width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrapper">
+    <div class="content">
+      <%- include('../partials/header') %>
+
+      <div class="container pricing">
+        <h2 class="text-center mb-5">Choose Your Plan</h2>
+        <div class="row">
+          <!-- Free Plan -->
+          <div class="col-md-4">
+            <div class="pricing-card text-center p-4">
+              <h4>Free</h4>
+              <p>Perfect for small-scale farms.</p>
+              <h5>$0/month</h5>
+              <ul class="list-unstyled">
+                <li>Basic analysis</li>
+                <li>Up to 10 images/month</li>
+                <li>Email support</li>
+              </ul>
+              <a href="/register" class="btn btn-primary btn-select">Get Started</a>
+            </div>
+          </div>
+          <!-- Pro Plan -->
+          <div class="col-md-4">
+            <div class="pricing-card text-center p-4 bg-light">
+              <h4>Pro</h4>
+              <p>Advanced tools for growing farms.</p>
+              <h5>$29.99/month</h5>
+              <ul class="list-unstyled">
+                <li>Advanced analysis</li>
+                <li>Unlimited images</li>
+                <li>Priority support</li>
+              </ul>
+              <a href="/register" class="btn btn-primary btn-select">Choose Pro</a>
+            </div>
+          </div>
+          <!-- Enterprise Plan -->
+          <div class="col-md-4">
+            <div class="pricing-card text-center p-4">
+              <h4>Enterprise</h4>
+              <p>Customized solutions for large farms.</p>
+              <h5>Contact Us</h5>
+              <ul class="list-unstyled">
+                <li>Custom analysis</li>
+                <li>Dedicated support</li>
+                <li>On-demand scalability</li>
+              </ul>
+              <a href="/contact" class="btn btn-primary btn-select">Contact Us</a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <footer class="bg-dark text-center text-white py-3 fixed-bottom">
+      <%- include('../partials/footer') %>
+    </footer>
+  </div>
+</body>
+</html>

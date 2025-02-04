@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FieldAI</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <link rel="stylesheet" href="/css/styles.css">
+  <style>
+    .features {
+        padding: 50px 20px;
+    }
+    .feature-item {
+        padding: 20px;
+        border-radius: 8px;
+        background: white;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+    }
+    .feature-item img {
+        width: 300px;
+        height: 172px;
+        border-radius: 8px;
+        margin-bottom: 1rem;
+    }
+    .features-bg {
+      background: url('/images/features-bg.jpg') no-repeat center center fixed;
+      background-size: cover;
+      height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.8);
+    }
+  </style>
+</head>
+<body>
+  <%- include('../partials/header') %>
+
+  <div class="features-bg">
+    <div class="text-center">
+      <h1>Welcome to FieldAi</h1>
+      <p>Transform your farming with AI-powered solutions.</p>
+      <a href="/about" class="btn btn-primary btn-lg">Learn More</a>
+    </div>
+  </div>
+
+  <div class="container features">
+    <h2 class="text-center">Features</h2>
+    <div class="row">
+        <div class="col-md-4">
+            <div class="feature-item text-center">
+                <img src="/images/feature1.jpg">
+                <h4>Image Upload</h4>
+                <p>Upload images of your cornfield easily and securely.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-item text-center">
+                <img src="/images/feature2.jpg">
+                <h4>Accurate Analysis</h4>
+                <p>Get detailed corn count and density analysis using cutting-edge technology.</p>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="feature-item text-center">
+                <img src="/images/feature3.jpg">
+                <h4>Scalable Performance</h4>
+                <p>Enjoy fast and efficient processing, no matter the size of your field.</p>
+            </div>
+        </div>
+    </div>
+    <div class="text-center mt-4">
+      <a href="/about" class="btn btn-primary">Learn More</a>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-center text-white py-3 static-bottom">
+    <%- include('../partials/footer') %>
+  </footer>
+</body>
+</html>

@@ -1,15 +1,14 @@
 const mysql = require('mysql2');
 
 const db = mysql.createConnection({
-  host: '127.0.0.1', // Cloud SQL public IP
-  user: 'sqladmin',
-  password: 'Slc223311', // Use a secure environment variable for sensitive info
-  database: 'fieldaidb',
+  host: process.env.DB_HOST,
+  user: process.env.DB_USER,
+  password: process.env.DB_PASSWORD,
+  database: process.env.DB_NAME,
   port: 3306,
-  connectTimeout: 10000, // 10 seconds timeout
+  connectTimeout: 10000, 
 });
 
-//If testing locally, please make sure to add your ip address into the Authorized networks tab.
 db.connect(err => {
   if (err) {
     console.error('Connection error:', err.message);
