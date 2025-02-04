@@ -1,6 +1,7 @@
 const bcryptjs = require('bcryptjs');
 const { findUserByEmail, findUserByUsername, createUser } = require('../models/userModel');
 
+// controllers/authController.js
 const registerUser = async (req, res) => {
     const { email, username, password, confirmPassword, latitude, longitude } = req.body;
 
@@ -15,24 +16,21 @@ const registerUser = async (req, res) => {
     try {
         const existingEmail = await findUserByEmail(email);
         const existingUsername = await findUserByUsername(username);
-        if (existingEmail) {
-            return res.status(400).send('Email is already in use.');
-        }
-        if (existingUsername) {
-            return res.status(400).send('Username is already taken.');
-        }
+        if (existingEmail) return res.status(400).send('Email is already in use.');
+        if (existingUsername) return res.status(400).send('Username is already taken.');
 
         const hashedPassword = await bcryptjs.hash(password, 10);
 
-        const result = await createUser(email, username, hashedPassword, latitude, longitude);
+        const result = await createUser(email, username, hashedPassword, "User", latitude, longitude);
+
         if (result) {
             res.redirect('/login');
         } else {
             res.status(500).send('Error creating user.');
         }
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
+        console.error('Registration Error:', error);
+        res.status(500).send('Internal Server Error: ' + error.message);
     }
 };
 

@@ -1,4 +1,4 @@
-const { getSectorsByUserId, addSector } = require('../models/sectorModel');
+const { getSectorsByUserId, addSector, checkSectorNameExists } = require('../models/sectorModel');
 const { getTemperatureData } = require('../controllers/userController');
 
 const getDashboardData = async (req) => {
@@ -15,17 +15,21 @@ const createSector = async (req, res) => {
     const { sectorName, latitude, longitude } = req.body;
 
     if (!sectorName || !latitude || !longitude) {
-      return res.status(400).json({ error: 'All fields are required.' });
+      return res.redirect('/user/dashboard');
     }
 
-    const newSectorId = await addSector(userId, sectorName, latitude, longitude);
-    res.status(201).json({ 
-      success: true, 
-      sector: { sector_id: newSectorId, name: sectorName, latitude, longitude } 
-    });
+    const nameExists = await checkSectorNameExists(userId, sectorName);
+    if (nameExists) {
+      return res.redirect('/user/dashboard');
+    }
+
+    await addSector(userId, sectorName, latitude, longitude);
+    
+    res.redirect('/user/dashboard');
+
   } catch (error) {
-    console.error('Error creating sector:', error);
-    res.status(500).json({ error: 'Failed to create sector' });
+    console.error('Sector creation error:', error);
+    res.redirect('/user/dashboard');
   }
 };
 

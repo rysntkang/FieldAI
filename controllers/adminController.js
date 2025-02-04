@@ -24,7 +24,7 @@ const registerUser = async (req, res) => {
 
         const hashedPassword = await bcryptjs.hash(password, 10);
 
-        const result = await createUser(email, username, hashedPassword, latitude, longitude);
+        const result = await createUser(email, username, hashedPassword, "Admin", latitude, longitude)
         if (result) {
             res.redirect('/admin/dashboard');
         } else {

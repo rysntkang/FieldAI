@@ -1,4 +1,4 @@
-const { createUploadAttempt, saveImageRecords } = require('../models/imageModel');
+const { createUploadAttemptWithImages } = require('../models/imageModel');
 const { processImageMock } = require('../services/mlService');
 
 const handleImageUpload = async (req, res) => {
@@ -8,16 +8,13 @@ const handleImageUpload = async (req, res) => {
     }
 
     const sectorId = req.body.sectorId;
-    const uploadId = await createUploadAttempt(sectorId);
-
     const files = req.files.map(file => ({
       file_path: `/uploads/${file.filename}`
     }));
+    const uploadId = await createUploadAttemptWithImages(sectorId, files);
 
-    await saveImageRecords(uploadId, files);
-
-    // Start mock processing for each image
-    const imageIds = files.map((_, index) => uploadId * 1000 + index); // Mock image IDs
+    // Mock processing
+    const imageIds = files.map((_, index) => uploadId * 1000 + index);
     imageIds.forEach(id => processImageMock(id));
 
     res.json({ 

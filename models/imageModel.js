@@ -1,29 +1,29 @@
 const db = require('../config/db');
 
-const createUploadAttempt = async (sectorId) => {
+const createUploadAttemptWithImages = async (sectorId, files) => {
+  const connection = await db.getConnection();
   try {
-    const [result] = await db.execute(
+    await connection.beginTransaction();
+
+    const [uploadResult] = await connection.execute(
       'INSERT INTO upload_attempts (sector_id) VALUES (?)',
       [sectorId]
     );
-    return result.insertId;
-  } catch (error) {
-    console.error('Error creating upload attempt:', error);
-    throw error;
-  }
-};
+    const uploadId = uploadResult.insertId;
 
-const saveImageRecords = async (uploadId, files) => {
-  try {
-    const query = `
-      INSERT INTO images (upload_id, file_path)
-      VALUES ?
-    `;
-    const values = files.map(file => [uploadId, file.file_path]);
-    await db.query(query, [values]);
+    if (files.length > 0) {
+      const query = 'INSERT INTO images (upload_id, file_path) VALUES ?';
+      const values = files.map(file => [uploadId, file.file_path]);
+      await connection.query(query, [values]);
+    }
+
+    await connection.commit();
+    return uploadId;
   } catch (error) {
-    console.error('Error saving image records:', error);
+    await connection.rollback();
     throw error;
+  } finally {
+    connection.release();
   }
 };
 
@@ -65,8 +65,7 @@ const getAttemptImages = async (uploadId) => {
 };
 
 module.exports = { 
-  createUploadAttempt, 
-  saveImageRecords,
-  getUploadAttempts,
-  getAttemptImages
+  createUploadAttemptWithImages, 
+  getUploadAttempts, 
+  getAttemptImages 
 };

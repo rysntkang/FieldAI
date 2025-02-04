@@ -10,16 +10,18 @@ const findUserByUsername = async (username) => {
     return rows[0];
 };
 
-const createUser = async (email, username, hashedPassword, latitude, longitude) => {
+const createUser = async (email, username, hashedPassword, role, latitude, longitude) => {
     const [result] = await db.execute(
-        'INSERT INTO users (email, username, password, role, latitude, longitude) VALUES (?, ?, ?, "User", ?, ?)',
-        [email, username, hashedPassword, latitude, longitude]
+        'INSERT INTO users (email, username, password, role, latitude, longitude) VALUES (?, ?, ?, ?, ?, ?)',
+        [email, username, hashedPassword, role, latitude, longitude]
     );
     return result.affectedRows > 0;
 };
 
 const getAllUsers = async () => {
-    const [rows] = await db.execute('SELECT * FROM users WHERE role != "Admin"');
+    const [rows] = await db.execute(
+        'SELECT user_id, email, username, role, latitude, longitude FROM users WHERE role != "Admin"'
+    );
     return rows;
 };
 
