@@ -1,5 +1,5 @@
 const { createUploadAttemptWithImages } = require('../models/imageModel');
-const { processImageMock } = require('../services/mlService');
+const { processImage } = require('../services/mlService');
 
 const handleImageUpload = async (req, res) => {
   try {
@@ -13,9 +13,9 @@ const handleImageUpload = async (req, res) => {
     }));
     const uploadId = await createUploadAttemptWithImages(sectorId, files);
 
-    // Mock processing
+    // Machine Learning Model Part
     const imageIds = files.map((_, index) => uploadId * 1000 + index);
-    imageIds.forEach(id => processImageMock(id));
+    imageIds.forEach(id => processImage(id));
 
     res.json({ 
       success: true, 

@@ -1,7 +1,6 @@
 const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
 const { getDashboardData, createSector } = require('../controllers/sectorController');
-const { getUploadAttempts, getAttemptImages, createUploadAttemptWithImages, saveImageRecords } = require('../models/imageModel');
 const { handleImageUpload } = require('../controllers/imageController');
 
 const router = express.Router();
@@ -48,7 +47,7 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
 
 router.post('/user/addSector', ensureAuthenticated, (req, res) => {
     createSector(req, res);
-  });
+});
 
 router.get('/upload', ensureAuthenticated, (req, res) => {
     try {
@@ -69,20 +68,5 @@ router.post('/upload/image',
   handleImageUpload
 );
 
-router.use((err, req, res, next) => {
-    console.error('Route Error:', err);
-    
-    if (res.headersSent) return next(err);
-
-    const errors = {
-        LIMIT_FILE_SIZE: 'File size exceeds 5MB limit',
-        LIMIT_FILE_COUNT: 'Maximum 10 files allowed',
-        LIMIT_UNEXPECTED_FILE: 'Invalid file type'
-    };
-
-    res.status(err.status || 500).json({
-        error: errors[err.code] || err.message || 'Unexpected error occurred'
-    });
-});
 
 module.exports = router;
