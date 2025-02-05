@@ -49,7 +49,9 @@ const processImage = async (imageId, imagePath) => {
         processed_date = NOW(),
         status = "completed",
         error_message = NULL
-    `, [cornCount, processingTime, imageId]);
+      WHERE image_id = ?`,
+      [cornCount, processingTime, imageId]  // 3 parameters match 3 placeholders
+    );
 
   } catch (error) {
     await db.execute(

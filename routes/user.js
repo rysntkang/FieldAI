@@ -1,7 +1,7 @@
 const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
 const { getDashboardData, createSector } = require('../controllers/sectorController');
-const { handleImageUpload } = require('../controllers/imageController');
+const { handleImageUpload, getUploadAttempts } = require('../controllers/imageController');
 
 const router = express.Router();
 
@@ -28,10 +28,6 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
     try {
         const sectorId = req.params.sectorId;
         const attempts = await getUploadAttempts(sectorId);
-        
-        for (const attempt of attempts) {
-            attempt.images = await getAttemptImages(attempt.upload_id);
-        }
 
         res.render('partials/user/modals/resultContent', {
             attempts,
@@ -39,9 +35,7 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
         });
     } catch (error) {
         console.error('Results error:', error);
-        if (!res.headersSent) {
-            res.status(500).send('Error loading results');
-        }
+        res.status(500).send('Error loading results');
     }
 });
 

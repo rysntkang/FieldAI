@@ -11,14 +11,29 @@ const createUploadAttemptWithImages = async (sectorId, files) => {
     );
     const uploadId = uploadResult.insertId;
 
+    let imageIds = [];
     if (files.length > 0) {
-      const query = 'INSERT INTO images (upload_id, file_path) VALUES ?';
-      const values = files.map(file => [uploadId, file.file_path]);
-      await connection.query(query, [values]);
+      const [imageInsertResult] = await connection.query(
+        'INSERT INTO images (upload_id, file_path) VALUES ?',
+        [files.map(file => [uploadId, file.file_path])]
+      );
+
+      const [imageRows] = await connection.execute(
+        'SELECT image_id FROM images WHERE upload_id = ? ORDER BY image_id ASC',
+        [uploadId]
+      );
+      imageIds = imageRows.map(row => row.image_id);
+
+      await connection.query(
+        `INSERT INTO results 
+          (image_id, status, corn_count, processing_time, error_message) 
+         VALUES ?`,
+        [imageIds.map(imageId => [imageId, 'pending', null, null, null])]
+      );
     }
 
     await connection.commit();
-    return uploadId;
+    return { uploadId, imageIds };
   } catch (error) {
     await connection.rollback();
     throw error;
