@@ -1,5 +1,6 @@
 const axios = require('axios');
 const bcryptjs = require('bcryptjs');
+const { findUserByEmail, findUserByUsername, updateUser } = require('../models/userModel');
 
 const getTemperatureData = async (req) => {
     const { latitude, longitude } = req.session.user;
