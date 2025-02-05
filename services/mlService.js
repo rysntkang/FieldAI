@@ -39,8 +39,6 @@ const processImage = async (imageId, imagePath) => {
     const cornCount = parseInt(prediciton.split(':')[1]);
     const processingTime = (Date.now() - startTime);
 
-    console.log(cornCount, processingTime, imageId);
-
     await db.execute(`
       UPDATE results 
       SET 
