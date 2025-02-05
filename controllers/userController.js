@@ -6,31 +6,36 @@ const { getSectorsByUserId } = require('../models/sectorModel');
 const getTemperatureData = async (req) => {
     const { latitude, longitude } = req.session.user;
 
-    if (!latitude || !longitude) {
-        throw new Error('Location data not found in session.');
-    }
-
     const weatherApiUrl = 'https://api.open-meteo.com/v1/forecast';
     const params = {
         latitude,
         longitude,
-        daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max', // Added precipitation and wind
+        daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
+        hourly: 'soil_moisture_0_1cm',
         timezone: 'auto',
     };
 
     const response = await axios.get(weatherApiUrl, { params });
 
-    if (response.status !== 200 || !response.data || !response.data.daily) {
-        throw new Error(`Unexpected API response: ${response.status}`);
-    }
+    let gdd_accumulated = 0;
+    const dailyData = response.data.daily.time.map((date, index) => {
+        const temp_max = response.data.daily.temperature_2m_max[index];
+        const temp_min = response.data.daily.temperature_2m_min[index];
+        const gdd = Math.max((temp_max + temp_min) / 2 - 10, 0); // Base temp 10°C for corn
+        gdd_accumulated += gdd;
 
-    return response.data.daily.time.map((date, index) => ({
-        date,
-        temp_max: response.data.daily.temperature_2m_max[index],
-        temp_min: response.data.daily.temperature_2m_min[index],
-        precipitation: response.data.daily.precipitation_sum[index], // Added precipitation data
-        wind_speed: response.data.daily.wind_speed_10m_max[index], // Added wind speed data
-    }));
+        return {
+            date,
+            temp_max,
+            temp_min,
+            precipitation: response.data.daily.precipitation_sum[index],
+            wind_speed: response.data.daily.wind_speed_10m_max[index],
+            gdd_accumulated,
+            soil_moisture: response.data.hourly.soil_moisture_0_1cm[index * 24] // Get daily sample
+        };
+    });
+
+    return dailyData;
 };
 
 const getDashboardData = async (req) => {

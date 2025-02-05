@@ -95,6 +95,35 @@
       <h3>Weather Data</h3>
       <div id="temperature-section" class="content-section">
 
+      <div class="row mb-4">
+        <div class="col-md-4">
+          <div class="card bg-light">
+            <div class="card-body">
+              <h5 class="card-title">🌱 Farming Tips</h5>
+              <div id="farmingTips">
+                <% if (temperatureData[0].gdd_accumulated > 100) { %>
+                  <p class="text-success">✔️ Good time for planting</p>
+                <% } else { %>
+                  <p class="text-warning">⏳ Wait for warmer days</p>
+                <% } %>
+                <% if (temperatureData[0].soil_moisture < 0.3) { %>
+                  <p class="text-danger">🚰 Irrigation needed</p>
+                <% } else { %>
+                  <p class="text-success">💧 Soil moisture good</p>
+                <% } %>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="col-md-8">
+          <div class="chart-container">
+            <h4>Heat Accumulation (GDD)</h4>
+            <canvas id="gddChart" class="chart-canvas"></canvas>
+          </div>
+        </div>
+      </div>
+
         <div class="chart-container">
           <h4>Temperature Forecast Trends</h4>
           <canvas id="temperatureChart" class="chart-canvas"></canvas>
@@ -193,19 +222,39 @@
         });
       }
 
-      // Create the charts
       const temperatureChart = createChart('temperatureChart', temperatureData.map(item => item.temp_max),  temperatureData.map(item => item.date), 'Daily Temperature Trends', 'Temperature (°C)', 'rgba(255, 99, 132, 1)', 'rgba(255, 99, 132, 0.2)');
 
       const precipitationChart = createChart('precipitationChart', temperatureData.map(item => item.precipitation), temperatureData.map(item => item.date), 'Daily Precipitation', 'Precipitation (mm)', 'rgba(75, 192, 192, 1)', 'rgba(75, 192, 192, 0.5)', 'bar');
 
       const windSpeedChart = createChart('windSpeedChart', temperatureData.map(item => item.wind_speed), temperatureData.map(item => item.date), 'Daily Wind Speed', 'Wind Speed (m/s)', 'rgba(255, 205, 86, 1)', 'rgba(255, 205, 86, 0.2)');
 
+      const gddChart = createChart(
+        'gddChart', 
+        temperatureData.map(item => item.gdd_accumulated),
+        temperatureData.map(item => item.date),
+        'Growing Degree Days', 
+        'GDD Accumulation', 
+        'rgba(139, 69, 19, 1)', 
+        'rgba(139, 69, 19, 0.2)'
+      );
+
+      const soilMoistureChart = createChart(
+        'soilMoistureChart', 
+        temperatureData.map(item => item.soil_moisture),
+        temperatureData.map(item => item.date),
+        'Soil Moisture Level', 
+        'Moisture (m³/m³)', 
+        'rgba(0, 123, 255, 1)', 
+        'rgba(0, 123, 255, 0.2)'
+      );
 
       // Resize event listener (Important!)
       window.addEventListener('resize', () => {
           temperatureChart.resize();
           precipitationChart.resize();
           windSpeedChart.resize();
+          gddChart.resize();
+          soilMoistureChart.resize();
       });
     });
     

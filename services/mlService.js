@@ -48,7 +48,7 @@ const processImage = async (imageId, imagePath) => {
         status = "completed",
         error_message = NULL
       WHERE image_id = ?`,
-      [cornCount, processingTime, imageId]  // 3 parameters match 3 placeholders
+      [cornCount, processingTime, imageId]
     );
 
   } catch (error) {
