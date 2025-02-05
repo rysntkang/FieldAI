@@ -25,4 +25,24 @@ const getAllUsers = async () => {
     return rows;
 };
 
-module.exports = { findUserByEmail, findUserByUsername, createUser, getAllUsers };
+const updateUser = async (userId, updates) => {
+  const fields = [];
+  const values = [];
+
+  Object.entries(updates).forEach(([key, value]) => {
+    if (value !== undefined) {
+      fields.push(`${key} = ?`);
+      values.push(value);
+    }
+  });
+
+  if (fields.length === 0) return false;
+
+  const query = `UPDATE users SET ${fields.join(', ')} WHERE user_id = ?`;
+  values.push(userId);
+
+  const [result] = await db.execute(query, values);
+  return result.affectedRows > 0;
+};
+
+module.exports = { findUserByEmail, findUserByUsername, createUser, getAllUsers, updateUser };

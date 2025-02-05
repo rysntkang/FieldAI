@@ -2,6 +2,7 @@ const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
 const { getDashboardData, createSector } = require('../controllers/sectorController');
 const { handleImageUpload, getUploadAttempts } = require('../controllers/imageController');
+const { updateUserSettings } = require('../controllers/userController');
 
 const router = express.Router();
 
@@ -11,18 +12,20 @@ const ensureAuthenticated = (req, res, next) => {
 };
 
 router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
-    try {
-        const { temperatureData, sectors } = await getDashboardData(req);
-        res.render('pages/user/dashboard', {
-            user: req.session.user,
-            temperatureData,
-            sectors
-        });
-    } catch (error) {
-        console.error('Dashboard error:', error);
-        res.redirect('/user/dashboard');
-    }
+  try {
+    const { temperatureData, sectors } = await getDashboardData(req);
+    res.render('pages/user/dashboard', {
+      user: req.session.user,
+      temperatureData,
+      sectors,
+      activePage: 'dashboard'
+    });
+  } catch (error) {
+    console.error('Dashboard error:', error);
+    res.redirect('/user/dashboard');
+  }
 });
+
 
 router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
     try {
@@ -37,6 +40,15 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
         console.error('Results error:', error);
         res.status(500).send('Error loading results');
     }
+});
+
+router.get('/user/settings', ensureAuthenticated, (req, res) => {
+  res.render('pages/user/settings', { 
+    user: req.session.user,
+    successMessage: req.query.success,
+    errorMessage: req.query.error,
+    activePage: 'settings'
+  });
 });
 
 router.post('/user/addSector', ensureAuthenticated, (req, res) => {
@@ -62,5 +74,6 @@ router.post('/upload/image',
   handleImageUpload
 );
 
+router.post('/user/settings', ensureAuthenticated, updateUserSettings);
 
 module.exports = router;

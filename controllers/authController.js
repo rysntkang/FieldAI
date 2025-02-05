@@ -53,7 +53,8 @@ const loginUser = async (req, res) => {
         }
 
         req.session.user = {
-            user_id: user.user_id, 
+            user_id: user.user_id,
+            email: user.email, 
             username: user.username,
             latitude: user.latitude,
             longitude: user.longitude,

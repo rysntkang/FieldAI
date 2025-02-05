@@ -1,7 +1,7 @@
 <div class="sidebar">
   <h4 class="text-center text-white">My Farm App</h4>
   <hr class="bg-white">
-  <a href="/dashboard" class="active">Dashboard</a>
-  <a href="/settings">Account Settings</a>
+  <a href="/user/dashboard" class="<%= activePage === 'dashboard' ? 'active' : '' %>">Dashboard</a>
+  <a href="/user/settings" class="<%= activePage === 'settings' ? 'active' : '' %>">Account Settings</a>
   <a href="/logout" class="text-danger">Logout</a>
 </div>

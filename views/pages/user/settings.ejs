@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Account Settings - FieldAi</title>
+  <%- include('../../partials/user/head') %>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <style>
+        .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #343a40;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      padding: 15px 20px;
+      display: block;
+    }
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+    .sidebar a.active {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+    .sector-card {
+      margin-bottom: 20px;
+    }
+    #map {
+      height: 300px;
+      margin-top: 10px;
+    }
+    .settings-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    #map {
+      height: 300px;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <%- include('../../partials/user/sidebar') %>
+
+  <div class="content">
+    <div class="settings-container">
+      <h3>Account Settings</h3>
+      <% if (successMessage) { %>
+        <div class="alert alert-success"><%= successMessage %></div>
+      <% } %>
+      <% if (errorMessage) { %>
+        <div class="alert alert-danger"><%= errorMessage %></div>
+      <% } %>
+      
+      <form method="POST" action="/user/settings">
+        <div class="form-group">
+          <label>Email Address</label>
+          <input type="email" class="form-control" name="email" value="<%= user.email %>" required>
+        </div>
+        
+        <div class="form-group">
+          <label>Username</label>
+          <input type="text" class="form-control" name="username" value="<%= user.username %>" required>
+        </div>
+        
+        <div class="form-group">
+          <label>New Password (leave blank to keep current)</label>
+          <input type="password" class="form-control" name="password">
+        </div>
+        
+        <div class="form-group">
+          <label>Confirm New Password</label>
+          <input type="password" class="form-control" name="confirmPassword">
+        </div>
+        
+        <div class="form-group">
+          <label>Farm Location</label>
+          <div id="map"></div>
+          <input type="hidden" id="latitude" name="latitude" value="<%= user.latitude %>">
+          <input type="hidden" id="longitude" name="longitude" value="<%= user.longitude %>">
+        </div>
+        
+        <button type="submit" class="btn btn-primary">Update Settings</button>
+      </form>
+    </div>
+  </div>
+
+  <%- include('../../partials/user/scripts') %>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+  <script>
+    let map, marker;
+
+    function initMap() {
+      const initialLat = <%= user.latitude %>;
+      const initialLng = <%= user.longitude %>;
+
+      map = L.map('map').setView([initialLat, initialLng], 13);
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(map);
+
+      marker = L.marker([initialLat, initialLng], { draggable: true }).addTo(map);
+
+      marker.on('dragend', () => {
+        const { lat, lng } = marker.getLatLng();
+        document.getElementById('latitude').value = lat;
+        document.getElementById('longitude').value = lng;
+      });
+
+      map.on('click', (e) => {
+        marker.setLatLng(e.latlng);
+        document.getElementById('latitude').value = e.latlng.lat;
+        document.getElementById('longitude').value = e.latlng.lng;
+      });
+    }
+
+    document.addEventListener('DOMContentLoaded', initMap);
+  </script>
+</body>
+</html>

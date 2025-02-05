@@ -1,4 +1,5 @@
 const axios = require('axios');
+const bcryptjs = require('bcryptjs');
 
 const getTemperatureData = async (req) => {
     const { latitude, longitude } = req.session.user;
@@ -28,4 +29,60 @@ const getTemperatureData = async (req) => {
     }));
 };
 
-module.exports = { getTemperatureData };
+const updateUserSettings = async (req, res) => {
+    const { email, username, password, confirmPassword, latitude, longitude } = req.body;
+    const userId = req.session.user.user_id;
+
+    if (!email || !username || !latitude || !longitude) {
+        return res.redirect('/user/settings?error=All fields are required');
+    }
+
+    if (password !== confirmPassword) {
+        return res.redirect('/user/settings?error=Passwords do not match');
+    }
+
+    try {
+        const existingEmail = await findUserByEmail(email);
+        if (existingEmail && existingEmail.user_id !== userId) {
+            return res.redirect('/user/settings?error=Email already in use');
+        }
+
+        const existingUsername = await findUserByUsername(username);
+        if (existingUsername && existingUsername.user_id !== userId) {
+            return res.redirect('/user/settings?error=Username already taken');
+        }
+
+        const updates = {
+            email,
+            username,
+            latitude: parseFloat(latitude),
+            longitude: parseFloat(longitude)
+        };
+
+        if (password) {
+            updates.password = await bcryptjs.hash(password, 10);
+        }
+
+        const updated = await updateUser(userId, updates);
+        if (!updated) {
+            return res.redirect('/user/settings?error=Failed to update user');
+        }
+
+        const { password: _, ...sessionUpdates } = updates;
+        req.session.user = { ...req.session.user, ...sessionUpdates };
+        
+        req.session.save((err) => {
+            if (err) {
+                console.error('Session save error:', err);
+                return res.redirect('/user/settings?error=Error updating session');
+            }
+            res.redirect('/user/settings?success=Settings updated successfully');
+        });
+
+    } catch (error) {
+        console.error('Update error:', error);
+        res.redirect('/user/settings?error=Error updating user');
+    }
+};
+
+module.exports = { getTemperatureData, updateUserSettings };
