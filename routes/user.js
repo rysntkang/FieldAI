@@ -1,8 +1,8 @@
 const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
-const { getDashboardData, createSector } = require('../controllers/sectorController');
+const { createSector } = require('../controllers/sectorController');
 const { handleImageUpload, getUploadAttempts } = require('../controllers/imageController');
-const { updateUserSettings } = require('../controllers/userController');
+const { getDashboardData, updateUserSettings } = require('../controllers/userController');
 
 const router = express.Router();
 

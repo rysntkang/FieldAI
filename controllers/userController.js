@@ -1,6 +1,7 @@
 const axios = require('axios');
 const bcryptjs = require('bcryptjs');
 const { findUserByEmail, findUserByUsername, updateUser } = require('../models/userModel');
+const { getSectorsByUserId } = require('../models/sectorModel');
 
 const getTemperatureData = async (req) => {
     const { latitude, longitude } = req.session.user;
@@ -28,6 +29,14 @@ const getTemperatureData = async (req) => {
         temp_max: response.data.daily.temperature_2m_max[index],
         temp_min: response.data.daily.temperature_2m_min[index],
     }));
+};
+
+const getDashboardData = async (req) => {
+  const userId = req.session.user.user_id;
+  const temperatureData = await getTemperatureData(req);
+  const sectors = await getSectorsByUserId(userId);
+
+  return { temperatureData, sectors };
 };
 
 const updateUserSettings = async (req, res) => {
@@ -86,4 +95,4 @@ const updateUserSettings = async (req, res) => {
     }
 };
 
-module.exports = { getTemperatureData, updateUserSettings };
+module.exports = { getDashboardData , updateUserSettings };

@@ -1,14 +1,6 @@
 const { getSectorsByUserId, addSector, checkSectorNameExists } = require('../models/sectorModel');
 const { getTemperatureData } = require('../controllers/userController');
 
-const getDashboardData = async (req) => {
-  const userId = req.session.user.user_id;
-  const temperatureData = await getTemperatureData(req);
-  const sectors = await getSectorsByUserId(userId);
-
-  return { temperatureData, sectors };
-};
-
 const createSector = async (req, res) => {
   try {
     const userId = req.session.user.user_id;
@@ -33,4 +25,4 @@ const createSector = async (req, res) => {
   }
 };
 
-module.exports = { getDashboardData, createSector };
+module.exports = { createSector };
