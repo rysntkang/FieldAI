@@ -14,7 +14,7 @@ const getTemperatureData = async (req) => {
     const params = {
         latitude,
         longitude,
-        daily: 'temperature_2m_max,temperature_2m_min',
+        daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max', // Added precipitation and wind
         timezone: 'auto',
     };
 
@@ -28,6 +28,8 @@ const getTemperatureData = async (req) => {
         date,
         temp_max: response.data.daily.temperature_2m_max[index],
         temp_min: response.data.daily.temperature_2m_min[index],
+        precipitation: response.data.daily.precipitation_sum[index], // Added precipitation data
+        wind_speed: response.data.daily.wind_speed_10m_max[index], // Added wind speed data
     }));
 };
 

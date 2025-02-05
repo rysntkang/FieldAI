@@ -38,19 +38,17 @@
       margin-top: 10px;
     }
 
-    /* Responsive Styles */
-    @media (max-width: 768px) {
-      .sidebar {
+    .chart-container {
+      height: 300px;
+      width: 100%;
+      position: relative;
+    }
+    .chart-canvas {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
-        height: auto;
-        position: relative;
-      }
-      .content {
-        margin-left: 0;
-      }
-      .sector-card {
-        width: 100%;
-      }
+        height: 100%;
     }
   </style>
 </head>
@@ -93,12 +91,25 @@
     </button>
     <hr>
 
-    <!-- Weather Data Section -->
     <% if (temperatureData && temperatureData.length > 0) { %>
       <h3>Weather Data</h3>
       <div id="temperature-section" class="content-section">
-        <h4>Temperature Forecast Trends</h4>
-        <canvas id="temperatureChart"></canvas>
+
+        <div class="chart-container">
+          <h4>Temperature Forecast Trends</h4>
+          <canvas id="temperatureChart" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <h4>Precipitation</h4>
+          <canvas id="precipitationChart" class="chart-canvas"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <h4>Wind Speed</h4>
+          <canvas id="windSpeedChart" class="chart-canvas"></canvas>
+        </div>
+
       </div>
       <hr>
     <% } %>
@@ -145,48 +156,59 @@
       });
     }
 
-    // Temperature Chart
     document.addEventListener('DOMContentLoaded', () => {
       const temperatureData = <%- JSON.stringify(temperatureData) %>;
       const tempSection = document.getElementById('temperature-section');
-      
+
       if (!temperatureData || temperatureData.length === 0) {
-        tempSection.hidden = true;
-        return;
+          tempSection.hidden = true;
+          return;
       }
 
-      const ctx = document.getElementById('temperatureChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: temperatureData.map(data => data.date),
-          datasets: [
-            {
-              label: 'Max Temperature (°C)',
-              data: temperatureData.map(data => data.temp_max),
-              borderColor: 'rgba(255, 99, 132, 1)',
-              backgroundColor: 'rgba(255, 99, 132, 0.2)',
+       // Function to create a chart (reusable)
+       function createChart(canvasId, data, labels, title, yLabel, borderColor, backgroundColor, type = 'line') {
+        const ctx = document.getElementById(canvasId).getContext('2d');
+        return new Chart(ctx, {
+          type: type,
+          data: {
+            labels: temperatureData.map(item => item.date), // Use temperatureData consistently
+            datasets: [{
+              label: title,
+              data: data,
+              borderColor: borderColor,
+              backgroundColor: backgroundColor,
               fill: true,
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              x: { title: { display: true, text: 'Date' } },
+              y: { title: { display: true, text: yLabel } }
             },
-            {
-              label: 'Min Temperature (°C)',
-              data: temperatureData.map(data => data.temp_min),
-              borderColor: 'rgba(54, 162, 235, 1)',
-              backgroundColor: 'rgba(54, 162, 235, 0.2)',
-              fill: true,
-            },
-          ],
-        },
-        options: {
-          responsive: true,
-          plugins: {
-            legend: { position: 'top' },
-            title: { display: true, text: 'Daily Temperature Trends' }
+            plugins: { legend: { position: 'top' }, title: { display: true, text: title } }
           }
-        }
+        });
+      }
+
+      // Create the charts
+      const temperatureChart = createChart('temperatureChart', temperatureData.map(item => item.temp_max),  temperatureData.map(item => item.date), 'Daily Temperature Trends', 'Temperature (°C)', 'rgba(255, 99, 132, 1)', 'rgba(255, 99, 132, 0.2)');
+
+      const precipitationChart = createChart('precipitationChart', temperatureData.map(item => item.precipitation), temperatureData.map(item => item.date), 'Daily Precipitation', 'Precipitation (mm)', 'rgba(75, 192, 192, 1)', 'rgba(75, 192, 192, 0.5)', 'bar');
+
+      const windSpeedChart = createChart('windSpeedChart', temperatureData.map(item => item.wind_speed), temperatureData.map(item => item.date), 'Daily Wind Speed', 'Wind Speed (m/s)', 'rgba(255, 205, 86, 1)', 'rgba(255, 205, 86, 0.2)');
+
+
+      // Resize event listener (Important!)
+      window.addEventListener('resize', () => {
+          temperatureChart.resize();
+          precipitationChart.resize();
+          windSpeedChart.resize();
       });
     });
-
+    
     // Event Delegation for Buttons
     document.getElementById('sectors-container').addEventListener('click', (e) => {
       const uploadBtn = e.target.closest('.upload-btn');
