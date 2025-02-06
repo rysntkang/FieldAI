@@ -164,6 +164,7 @@
       setTimeout(() => map.invalidateSize(), 100);
     });
 
+    //Map Functions
     let map, marker;
     function initMap() {
       if (map) {
@@ -189,6 +190,7 @@
       });
     }
 
+    // Farming Tips
     function generateFarmingTips(data) {
       const today = data[0];
       const tips = [];
@@ -266,35 +268,30 @@
       tips.forEach(function(tip) {
         const tipDiv = document.createElement('div');
         tipDiv.classList.add('farming-tip');
-        // Set the title attribute so users see the explanation on hover
         tipDiv.setAttribute('title', tip.explanation);
         
-        // Create emoji span
         const emojiSpan = document.createElement('span');
         emojiSpan.classList.add('emoji');
         emojiSpan.textContent = tip.emoji;
         
-        // Create text span with a Bootstrap text class (success, warning, danger, or info)
         const textSpan = document.createElement('span');
         textSpan.classList.add('tip-text', `text-${tip.type}`);
         textSpan.textContent = tip.text;
         
-        // Append the emoji and text spans to the tip container
         tipDiv.appendChild(emojiSpan);
         tipDiv.appendChild(textSpan);
         
-        // Append the tip container to the farmingTips div
         farmingTipsDiv.appendChild(tipDiv);
       });
       const tempSection = document.getElementById('temperature-section');
 
-       // Function to create a chart (reusable)
+      // Function to create Charts
        function createChart(canvasId, data, labels, title, yLabel, borderColor, backgroundColor, type = 'line') {
         const ctx = document.getElementById(canvasId).getContext('2d');
         return new Chart(ctx, {
           type: type,
           data: {
-            labels: temperatureData.map(item => item.date), // Use temperatureData consistently
+            labels: temperatureData.map(item => item.date),
             datasets: [{
               label: title,
               data: data,
@@ -376,7 +373,6 @@
       });
     });
     
-    // Event Delegation for Buttons
     document.getElementById('sectors-container').addEventListener('click', (e) => {
       const uploadBtn = e.target.closest('.upload-btn');
       const resultsBtn = e.target.closest('.view-results-btn');
@@ -417,7 +413,7 @@
         if (!response.ok) throw new Error(await response.text());
         alert('Upload successful!');
         $('#uploadImageModal').modal('hide');
-        location.reload(); // Refresh to show new upload
+        location.reload();
       } catch (error) {
         alert(`Upload failed: ${error.message}`);
       }
