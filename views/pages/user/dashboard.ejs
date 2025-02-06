@@ -93,7 +93,9 @@
           </div>
         <% }); %>
       <% } else { %>
-        <p>No sectors available. Please add a new sector to get started.</p>
+        <div class="col-12 text-left">
+          <p class="text-muted">No sectors available. Please add a new sector to get started.</p>
+        </div>
       <% } %>
     </div>
     
@@ -103,7 +105,7 @@
     <hr>
 
     <% if (temperatureData && temperatureData.length > 0) { %>
-      <h3>Weather Data</h3>
+      <h3>Weather Trend Forecast</h3>
       <div id="temperature-section" class="content-section">
 
       <div class="row mb-4">
@@ -128,7 +130,7 @@
       <hr>
 
       <div class="chart-container">
-        <h4>Temperature Forecast Trends</h4>
+        <h4>Temperature</h4>
         <canvas id="temperatureChart" class="chart-canvas"></canvas>
       </div>
       <hr>
