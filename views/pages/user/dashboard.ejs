@@ -50,6 +50,17 @@
         width: 100%;
         height: 100%;
     }
+    .farming-tip {
+      display: flex;
+      align-items: center;
+      margin-bottom: 8px;
+      cursor: pointer;
+    }
+    .farming-tip .emoji {
+      font-size: 1.2em;
+      margin-right: 8px;
+    }
+    
   </style>
 </head>
 <body>
@@ -100,30 +111,20 @@
           <div class="card bg-light">
             <div class="card-body">
               <h5 class="card-title">🌱 Farming Tips</h5>
-              <div id="farmingTips">
-                <% if (temperatureData[0].gdd_accumulated > 100) { %>
-                  <p class="text-success">✔️ Good time for planting</p>
-                <% } else { %>
-                  <p class="text-warning">⏳ Wait for warmer days</p>
-                <% } %>
-                <% if (temperatureData[0].soil_moisture < 0.3) { %>
-                  <p class="text-danger">🚰 Irrigation needed</p>
-                <% } else { %>
-                  <p class="text-success">💧 Soil moisture good</p>
-                <% } %>
-              </div>
+              <div id="farmingTips"></div>
             </div>
           </div>
         </div>
 
+        <!-- Heat Accumulation Chart -->
         <div class="col-md-8">
           <div class="chart-container">
             <h4>Heat Accumulation (GDD)</h4>
             <canvas id="gddChart" class="chart-canvas"></canvas>
           </div>
         </div>
-
       </div>
+
       <hr>
 
       <div class="chart-container">
@@ -158,7 +159,6 @@
 
   <%- include('../../partials/user/scripts') %>
   <script>
-    // Map Initialization
     $('#addSectorModal').on('shown.bs.modal', function() {
       initMap();
       setTimeout(() => map.invalidateSize(), 100);
@@ -189,14 +189,104 @@
       });
     }
 
+    function generateFarmingTips(data) {
+      const today = data[0];
+      const tips = [];
+
+      if (today.gdd_accumulated > 100) {
+        tips.push({
+          emoji: '✔️',
+          text: 'Good time for planting!',
+          type: 'success',
+          explanation: 'The accumulated heat (GDD) is high enough for optimal corn planting.'
+        });
+      } else {
+        tips.push({
+          emoji: '⏳',
+          text: 'Wait for warmer days before planting.',
+          type: 'warning',
+          explanation: 'The current GDD is low, indicating that the heat accumulation is not yet ideal for planting.'
+        });
+      }
+      
+      if (today.soil_moisture < 0.3) {
+        tips.push({
+          emoji: '🚰',
+          text: 'Irrigation needed – soil moisture is low.',
+          type: 'danger',
+          explanation: 'Soil moisture levels are below the optimal range. Your crops may need watering soon.'
+        });
+      } else {
+        tips.push({
+          emoji: '💧',
+          text: 'Soil moisture is good.',
+          type: 'success',
+          explanation: 'The soil moisture level is within a healthy range for corn growth.'
+        });
+      }
+      
+      if (today.precipitation > 5) {
+        tips.push({
+          emoji: '☔',
+          text: 'Heavy rain expected – ensure proper drainage.',
+          type: 'info',
+          explanation: 'High precipitation may lead to waterlogging; consider checking your drainage systems.'
+        });
+      }
+      
+      if (today.wind_speed > 15) {
+        tips.push({
+          emoji: '💨',
+          text: 'High winds detected – consider windbreaks.',
+          type: 'warning',
+          explanation: 'Strong winds can damage young plants. It might be wise to set up windbreaks.'
+        });
+      }
+      
+      if (today.temp_min < 10) {
+        tips.push({
+          emoji: '❄️',
+          text: 'Low temperatures expected – protect young plants from frost.',
+          type: 'warning',
+          explanation: 'The forecasted minimum temperature is low, increasing the risk of frost damage for sensitive crops.'
+        });
+      }
+      
+      return tips;
+    }
+
     document.addEventListener('DOMContentLoaded', () => {
       const temperatureData = <%- JSON.stringify(temperatureData) %>;
+      
+      const tips = generateFarmingTips(temperatureData);
+      
+      const farmingTipsDiv = document.getElementById('farmingTips');
+      farmingTipsDiv.innerHTML = '';
+      
+      tips.forEach(function(tip) {
+        const tipDiv = document.createElement('div');
+        tipDiv.classList.add('farming-tip');
+        // Set the title attribute so users see the explanation on hover
+        tipDiv.setAttribute('title', tip.explanation);
+        
+        // Create emoji span
+        const emojiSpan = document.createElement('span');
+        emojiSpan.classList.add('emoji');
+        emojiSpan.textContent = tip.emoji;
+        
+        // Create text span with a Bootstrap text class (success, warning, danger, or info)
+        const textSpan = document.createElement('span');
+        textSpan.classList.add('tip-text', `text-${tip.type}`);
+        textSpan.textContent = tip.text;
+        
+        // Append the emoji and text spans to the tip container
+        tipDiv.appendChild(emojiSpan);
+        tipDiv.appendChild(textSpan);
+        
+        // Append the tip container to the farmingTips div
+        farmingTipsDiv.appendChild(tipDiv);
+      });
       const tempSection = document.getElementById('temperature-section');
-
-      if (!temperatureData || temperatureData.length === 0) {
-          tempSection.hidden = true;
-          return;
-      }
 
        // Function to create a chart (reusable)
        function createChart(canvasId, data, labels, title, yLabel, borderColor, backgroundColor, type = 'line') {
@@ -226,33 +316,57 @@
         });
       }
 
-      const temperatureChart = createChart('temperatureChart', temperatureData.map(item => item.temp_max),  temperatureData.map(item => item.date), 'Daily Temperature Trends', 'Temperature (°C)', 'rgba(255, 99, 132, 1)', 'rgba(255, 99, 132, 0.2)');
+      const temperatureChart = createChart(
+        'temperatureChart',
+        temperatureData.map(item => item.temp_max),
+        temperatureData.map(item => item.date),
+        'Daily Temperature Trends',
+        'Temperature (°C)',
+        'rgba(255, 99, 132, 1)',
+        'rgba(255, 99, 132, 0.2)'
+      );
 
-      const precipitationChart = createChart('precipitationChart', temperatureData.map(item => item.precipitation), temperatureData.map(item => item.date), 'Daily Precipitation', 'Precipitation (mm)', 'rgba(75, 192, 192, 1)', 'rgba(75, 192, 192, 0.5)', 'bar');
+      const precipitationChart = createChart(
+        'precipitationChart',
+        temperatureData.map(item => item.precipitation),
+        temperatureData.map(item => item.date),
+        'Daily Precipitation',
+        'Precipitation (mm)',
+        'rgba(75, 192, 192, 1)',
+        'rgba(75, 192, 192, 0.5)',
+        'bar'
+      );
 
-      const windSpeedChart = createChart('windSpeedChart', temperatureData.map(item => item.wind_speed), temperatureData.map(item => item.date), 'Daily Wind Speed', 'Wind Speed (m/s)', 'rgba(255, 205, 86, 1)', 'rgba(255, 205, 86, 0.2)');
+      const windSpeedChart = createChart(
+        'windSpeedChart',
+        temperatureData.map(item => item.wind_speed),
+        temperatureData.map(item => item.date),
+        'Daily Wind Speed',
+        'Wind Speed (m/s)',
+        'rgba(255, 205, 86, 1)',
+        'rgba(255, 205, 86, 0.2)'
+      );
 
       const gddChart = createChart(
-        'gddChart', 
+        'gddChart',
         temperatureData.map(item => item.gdd_accumulated),
         temperatureData.map(item => item.date),
-        'Growing Degree Days', 
-        'GDD Accumulation', 
-        'rgba(139, 69, 19, 1)', 
+        'Growing Degree Days',
+        'GDD Accumulation',
+        'rgba(139, 69, 19, 1)',
         'rgba(139, 69, 19, 0.2)'
       );
 
       const soilMoistureChart = createChart(
-        'soilMoistureChart', 
+        'soilMoistureChart',
         temperatureData.map(item => item.soil_moisture),
         temperatureData.map(item => item.date),
-        'Soil Moisture Level', 
-        'Moisture (m³/m³)', 
-        'rgba(0, 123, 255, 1)', 
+        'Soil Moisture Level',
+        'Moisture (m³/m³)',
+        'rgba(0, 123, 255, 1)',
         'rgba(0, 123, 255, 0.2)'
       );
 
-      // Resize event listener (Important!)
       window.addEventListener('resize', () => {
           temperatureChart.resize();
           precipitationChart.resize();
