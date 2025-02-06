@@ -31,24 +31,34 @@
       padding: 20px;
     }
     .sector-card {
-      margin-bottom: 20px;
+      padding: 0;
+    }
+
+    .sector-card .card {
+      height: 100%;
+      margin: 0;
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+
+    .sector-card .card:hover {
+      transform: scale(1.02);
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     }
     #map {
       height: 300px;
       margin-top: 10px;
     }
-
     .chart-container {
       height: 300px;
       width: 100%;
       position: relative;
     }
     .chart-canvas {
-        position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
     }
     .farming-tip {
       display: flex;
@@ -60,7 +70,16 @@
       font-size: 1.2em;
       margin-right: 8px;
     }
-    
+    /* Style for the weather source label */
+    #weatherSource {
+      margin-top: 10px;
+      font-style: italic;
+      color: #555;
+    }
+    /* Style for the reset button */
+    #resetWeatherBtn {
+      margin: 10px 0;
+    }
   </style>
 </head>
 <body>
@@ -71,7 +90,8 @@
     <div class="row" id="sectors-container">
       <% if (sectors.length > 0) { %>
         <% sectors.forEach(sector => { %>
-          <div class="col-md-3 sector-card">
+          <!-- Embed sector coordinates as data attributes -->
+          <div class="col-md-3 sector-card" data-lat="<%= sector.latitude %>" data-lng="<%= sector.longitude %>">
             <div class="card">
               <div class="card-body">
                 <h5 class="card-title"><%= sector.name %></h5>
@@ -104,48 +124,50 @@
     </button>
     <hr>
 
-    <% if (temperatureData && temperatureData.length > 0) { %>
+    <% if (weatherData && weatherData.length > 0) { %>
       <h3>Weather Trend Forecast</h3>
+      <!-- Weather source information and reset button -->
+      <p id="weatherSource">Currently displaying weather data for: Account Location (<%= user.latitude %>, <%= user.longitude %>)</p>
+      <button id="resetWeatherBtn" class="btn btn-info btn-sm">Reset to Account Location</button>
+      
       <div id="temperature-section" class="content-section">
-
-      <div class="row mb-4">
-        <div class="col-md-4">
-          <div class="card bg-light">
-            <div class="card-body">
-              <h5 class="card-title">🌱 Farming Tips</h5>
-              <div id="farmingTips"></div>
+        <div class="row mb-4">
+          <div class="col-md-4">
+            <div class="card bg-light">
+              <div class="card-body">
+                <h5 class="card-title">🌱 Farming Tips</h5>
+                <div id="farmingTips"></div>
+              </div>
+            </div>
+          </div>
+          <!-- Heat Accumulation Chart -->
+          <div class="col-md-8">
+            <div class="chart-container">
+              <h4>Heat Accumulation (GDD)</h4>
+              <canvas id="gddChart" class="chart-canvas"></canvas>
             </div>
           </div>
         </div>
-
-        <!-- Heat Accumulation Chart -->
-        <div class="col-md-8">
-          <div class="chart-container">
-            <h4>Heat Accumulation (GDD)</h4>
-            <canvas id="gddChart" class="chart-canvas"></canvas>
-          </div>
+        <hr>
+        <div class="chart-container">
+          <h4>Temperature</h4>
+          <canvas id="temperatureChart" class="chart-canvas"></canvas>
         </div>
-      </div>
-
-      <hr>
-
-      <div class="chart-container">
-        <h4>Temperature</h4>
-        <canvas id="temperatureChart" class="chart-canvas"></canvas>
-      </div>
-      <hr>
-
-      <div class="chart-container">
-        <h4>Precipitation</h4>
-        <canvas id="precipitationChart" class="chart-canvas"></canvas>
-      </div>
-      <hr>
-
-      <div class="chart-container">
-        <h4>Wind Speed</h4>
-        <canvas id="windSpeedChart" class="chart-canvas"></canvas>
-      </div>
-
+        <hr>
+        <div class="chart-container">
+          <h4>Precipitation</h4>
+          <canvas id="precipitationChart" class="chart-canvas"></canvas>
+        </div>
+        <hr>
+        <div class="chart-container">
+          <h4>Wind Speed</h4>
+          <canvas id="windSpeedChart" class="chart-canvas"></canvas>
+        </div>
+        <hr>
+        <div class="chart-container">
+          <h4>Soil Moisture</h4>
+          <canvas id="soilMoistureChart" class="chart-canvas"></canvas>
+        </div>
       </div>
       <hr>
     <% } %>
@@ -161,12 +183,50 @@
 
   <%- include('../../partials/user/scripts') %>
   <script>
+    // -------------------------------
+    // Global: createChart function
+    // -------------------------------
+    function createChart(canvasId, data, labels, title, yLabel, borderColor, backgroundColor, type = 'line') {
+      const ctx = document.getElementById(canvasId).getContext('2d');
+      return new Chart(ctx, {
+        type: type,
+        data: {
+          labels: labels,  // Use the labels parameter
+          datasets: [{
+            label: title,
+            data: data,
+            borderColor: borderColor,
+            backgroundColor: backgroundColor,
+            fill: true,
+            tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: { title: { display: true, text: 'Date' } },
+            y: { title: { display: true, text: yLabel } }
+          },
+          plugins: { legend: { position: 'top' }, title: { display: true, text: title } }
+        }
+      });
+    }
+    // -------------------------------
+    // End Global createChart function
+    // -------------------------------
+
+    // Account's original coordinates (from the session)
+    const accountLat = <%= user.latitude %>;
+    const accountLng = <%= user.longitude %>;
+
+    // Initialize map when adding a sector
     $('#addSectorModal').on('shown.bs.modal', function() {
       initMap();
       setTimeout(() => map.invalidateSize(), 100);
     });
 
-    //Map Functions
+    // Map Functions
     let map, marker;
     function initMap() {
       if (map) {
@@ -174,16 +234,13 @@
         map.remove();
         map = null;
       }
-      
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
         map = L.map('map').setView([latitude, longitude], 13);
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
         marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
-        
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
-
         marker.on('dragend', () => {
           const { lat, lng } = marker.getLatLng();
           document.getElementById('latitude').value = lat;
@@ -192,11 +249,10 @@
       });
     }
 
-    // Farming Tips
+    // Farming Tips Function
     function generateFarmingTips(data) {
       const today = data[0];
       const tips = [];
-
       if (today.gdd_accumulated > 100) {
         tips.push({
           emoji: '✔️',
@@ -212,7 +268,6 @@
           explanation: 'The current GDD is low, indicating that the heat accumulation is not yet ideal for planting.'
         });
       }
-      
       if (today.soil_moisture < 0.3) {
         tips.push({
           emoji: '🚰',
@@ -228,7 +283,6 @@
           explanation: 'The soil moisture level is within a healthy range for corn growth.'
         });
       }
-      
       if (today.precipitation > 5) {
         tips.push({
           emoji: '☔',
@@ -237,7 +291,6 @@
           explanation: 'High precipitation may lead to waterlogging; consider checking your drainage systems.'
         });
       }
-      
       if (today.wind_speed > 15) {
         tips.push({
           emoji: '💨',
@@ -246,7 +299,6 @@
           explanation: 'Strong winds can damage young plants. It might be wise to set up windbreaks.'
         });
       }
-      
       if (today.temp_min < 10) {
         tips.push({
           emoji: '❄️',
@@ -255,126 +307,93 @@
           explanation: 'The forecasted minimum temperature is low, increasing the risk of frost damage for sensitive crops.'
         });
       }
-      
       return tips;
     }
 
     document.addEventListener('DOMContentLoaded', () => {
-      const temperatureData = <%- JSON.stringify(temperatureData) %>;
+      const weatherData = <%- JSON.stringify(weatherData) %>;
       
-      const tips = generateFarmingTips(temperatureData);
-      
+      // Generate and display farming tips
+      const tips = generateFarmingTips(weatherData);
       const farmingTipsDiv = document.getElementById('farmingTips');
       farmingTipsDiv.innerHTML = '';
-      
       tips.forEach(function(tip) {
         const tipDiv = document.createElement('div');
         tipDiv.classList.add('farming-tip');
         tipDiv.setAttribute('title', tip.explanation);
-        
         const emojiSpan = document.createElement('span');
         emojiSpan.classList.add('emoji');
         emojiSpan.textContent = tip.emoji;
-        
         const textSpan = document.createElement('span');
         textSpan.classList.add('tip-text', `text-${tip.type}`);
         textSpan.textContent = tip.text;
-        
         tipDiv.appendChild(emojiSpan);
         tipDiv.appendChild(textSpan);
-        
         farmingTipsDiv.appendChild(tipDiv);
       });
-      const tempSection = document.getElementById('temperature-section');
-
-      // Function to create Charts
-       function createChart(canvasId, data, labels, title, yLabel, borderColor, backgroundColor, type = 'line') {
-        const ctx = document.getElementById(canvasId).getContext('2d');
-        return new Chart(ctx, {
-          type: type,
-          data: {
-            labels: temperatureData.map(item => item.date),
-            datasets: [{
-              label: title,
-              data: data,
-              borderColor: borderColor,
-              backgroundColor: backgroundColor,
-              fill: true,
-              tension: 0.4
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-              x: { title: { display: true, text: 'Date' } },
-              y: { title: { display: true, text: yLabel } }
-            },
-            plugins: { legend: { position: 'top' }, title: { display: true, text: title } }
-          }
-        });
-      }
-
+      
+      // Create initial charts using the global createChart function
       const temperatureChart = createChart(
         'temperatureChart',
-        temperatureData.map(item => item.temp_max),
-        temperatureData.map(item => item.date),
+        weatherData.map(item => item.temp_max),
+        weatherData.map(item => item.date),
         'Daily Temperature Trends',
         'Temperature (°C)',
         'rgba(255, 99, 132, 1)',
         'rgba(255, 99, 132, 0.2)'
       );
-
+      
       const precipitationChart = createChart(
         'precipitationChart',
-        temperatureData.map(item => item.precipitation),
-        temperatureData.map(item => item.date),
+        weatherData.map(item => item.precipitation),
+        weatherData.map(item => item.date),
         'Daily Precipitation',
         'Precipitation (mm)',
         'rgba(75, 192, 192, 1)',
         'rgba(75, 192, 192, 0.5)',
         'bar'
       );
-
+      
       const windSpeedChart = createChart(
         'windSpeedChart',
-        temperatureData.map(item => item.wind_speed),
-        temperatureData.map(item => item.date),
+        weatherData.map(item => item.wind_speed),
+        weatherData.map(item => item.date),
         'Daily Wind Speed',
         'Wind Speed (m/s)',
         'rgba(255, 205, 86, 1)',
         'rgba(255, 205, 86, 0.2)'
       );
-
+      
       const gddChart = createChart(
         'gddChart',
-        temperatureData.map(item => item.gdd_accumulated),
-        temperatureData.map(item => item.date),
+        weatherData.map(item => item.gdd_accumulated),
+        weatherData.map(item => item.date),
         'Growing Degree Days',
         'GDD Accumulation',
         'rgba(139, 69, 19, 1)',
         'rgba(139, 69, 19, 0.2)'
       );
-
+      
       const soilMoistureChart = createChart(
         'soilMoistureChart',
-        temperatureData.map(item => item.soil_moisture),
-        temperatureData.map(item => item.date),
+        weatherData.map(item => item.soil_moisture),
+        weatherData.map(item => item.date),
         'Soil Moisture Level',
         'Moisture (m³/m³)',
         'rgba(0, 123, 255, 1)',
         'rgba(0, 123, 255, 0.2)'
       );
-
+      
       window.addEventListener('resize', () => {
-          temperatureChart.resize();
-          precipitationChart.resize();
-          windSpeedChart.resize();
-          gddChart.resize();
-          soilMoistureChart.resize();
+        temperatureChart.resize();
+        precipitationChart.resize();
+        windSpeedChart.resize();
+        gddChart.resize();
+        soilMoistureChart.resize();
       });
     });
-    
+
+    // Sector card click handler: update weather data based on sector coordinates.
     document.getElementById('sectors-container').addEventListener('click', (e) => {
       const uploadBtn = e.target.closest('.upload-btn');
       const resultsBtn = e.target.closest('.view-results-btn');
@@ -386,8 +405,102 @@
       if (resultsBtn) {
         loadResultsModal(resultsBtn.dataset.sectorid);
       }
+      
+      // If a sector card is clicked, fetch field-specific weather data.
+      const sectorCard = e.target.closest('.sector-card');
+      if (sectorCard) {
+        const lat = sectorCard.getAttribute('data-lat');
+        const lng = sectorCard.getAttribute('data-lng');
+        updateWeatherForSector(lat, lng, 'Sector');
+      }
     });
-
+    
+    // Function to update weather data for a specific location.
+    // The parameter "source" indicates if the data is from a "Sector" or "Account".
+    async function updateWeatherForSector(lat, lng, source = 'Sector') {
+      try {
+        const response = await fetch(`/user/weather?lat=${lat}&lng=${lng}`);
+        if (!response.ok) throw new Error(await response.text());
+        const newWeatherData = await response.json();
+        
+        // Update the weather source label
+        document.getElementById('weatherSource').textContent =
+          `Currently displaying weather data for: ${source} Location (${lat}, ${lng})`;
+        
+        // Update farming tips
+        const tips = generateFarmingTips(newWeatherData);
+        const farmingTipsDiv = document.getElementById('farmingTips');
+        farmingTipsDiv.innerHTML = '';
+        tips.forEach(function(tip) {
+          const tipDiv = document.createElement('div');
+          tipDiv.classList.add('farming-tip');
+          tipDiv.setAttribute('title', tip.explanation);
+          const emojiSpan = document.createElement('span');
+          emojiSpan.classList.add('emoji');
+          emojiSpan.textContent = tip.emoji;
+          const textSpan = document.createElement('span');
+          textSpan.classList.add('tip-text', `text-${tip.type}`);
+          textSpan.textContent = tip.text;
+          tipDiv.appendChild(emojiSpan);
+          tipDiv.appendChild(textSpan);
+          farmingTipsDiv.appendChild(tipDiv);
+        });
+        
+        // Replace chart canvases with new ones
+        document.getElementById('temperatureChart').parentNode.innerHTML = '<canvas id="temperatureChart" class="chart-canvas"></canvas>';
+        document.getElementById('precipitationChart').parentNode.innerHTML = '<canvas id="precipitationChart" class="chart-canvas"></canvas>';
+        document.getElementById('windSpeedChart').parentNode.innerHTML = '<canvas id="windSpeedChart" class="chart-canvas"></canvas>';
+        document.getElementById('gddChart').parentNode.innerHTML = '<canvas id="gddChart" class="chart-canvas"></canvas>';
+        
+        // Re-create charts with newWeatherData using the global createChart function
+        const temperatureChart = createChart(
+          'temperatureChart',
+          newWeatherData.map(item => item.temp_max),
+          newWeatherData.map(item => item.date),
+          'Daily Temperature Trends',
+          'Temperature (°C)',
+          'rgba(255, 99, 132, 1)',
+          'rgba(255, 99, 132, 0.2)'
+        );
+        const precipitationChart = createChart(
+          'precipitationChart',
+          newWeatherData.map(item => item.precipitation),
+          newWeatherData.map(item => item.date),
+          'Daily Precipitation',
+          'Precipitation (mm)',
+          'rgba(75, 192, 192, 1)',
+          'rgba(75, 192, 192, 0.5)',
+          'bar'
+        );
+        const windSpeedChart = createChart(
+          'windSpeedChart',
+          newWeatherData.map(item => item.wind_speed),
+          newWeatherData.map(item => item.date),
+          'Daily Wind Speed',
+          'Wind Speed (m/s)',
+          'rgba(255, 205, 86, 1)',
+          'rgba(255, 205, 86, 0.2)'
+        );
+        const gddChart = createChart(
+          'gddChart',
+          newWeatherData.map(item => item.gdd_accumulated),
+          newWeatherData.map(item => item.date),
+          'Growing Degree Days',
+          'GDD Accumulation',
+          'rgba(139, 69, 19, 1)',
+          'rgba(139, 69, 19, 0.2)'
+        );
+      } catch (error) {
+        console.error("Error updating weather for sector:", error);
+        alert("Failed to update weather data for the selected location.");
+      }
+    }
+    
+    // Reset button handler: update weather data back to the account's original coordinates.
+    document.getElementById('resetWeatherBtn').addEventListener('click', () => {
+      updateWeatherForSector(accountLat, accountLng, 'Account');
+    });
+    
     // File Upload Handling
     document.getElementById('imageInput').addEventListener('change', function() {
       const maxFiles = 5;
@@ -400,18 +513,16 @@
         ? `${this.files.length} files selected` 
         : 'Choose files';
     });
-
+    
     // Upload Form Submission
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
-
       try {
         const response = await fetch('/upload/image', {
           method: 'POST',
           body: formData
         });
-        
         if (!response.ok) throw new Error(await response.text());
         alert('Upload successful!');
         $('#uploadImageModal').modal('hide');
@@ -420,19 +531,17 @@
         alert(`Upload failed: ${error.message}`);
       }
     });
-
+    
     // Results Modal Handler
     async function loadResultsModal(sectorId) {
       const modal = $('#resultsModal');
       const content = document.getElementById('resultsContent');
-      
       content.innerHTML = `
         <div class="text-center py-4">
           <div class="spinner-border text-primary" role="status">
             <span class="sr-only">Loading...</span>
           </div>
         </div>`;
-
       try {
         const response = await fetch(`/results/${sectorId}`);
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
