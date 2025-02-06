@@ -8,6 +8,32 @@
   <link rel="stylesheet" href="/css/adminStyles.css">
   <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
+    .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #343a40;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      padding: 15px 20px;
+      display: block;
+    }
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+    .sidebar a.active {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+    }
     #map {
         height: 300px;
         margin-top: 20px;
@@ -17,39 +43,35 @@
   </style>
 </head>
 <body>
-    
-    <%- include('../../partials/admin/header') %>
 
-  <div class="d-flex">
-    <%- include('../../partials/admin/sidebar') %>
+  <%- include('../../partials/admin/sidebar') %>
 
-    <main class="p-4 flex-fill">
-        <h2>Add Users</h2>
-        <form action="/admin/add-user" method="POST">
-        <div class="form-group">
-            <label for="username">Username</label>
-            <input type="text" name="username" id="username" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="email">Email</label>
-            <input type="email" name="email" id="email" class="form-control" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Password</label>
-            <input type="password" name="password" id="password" class="form-control" required>
-        </div>
+  <div class="content">
+    <h3>Add Users</h3>
+    <form action="/admin/add-user" method="POST">
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input type="text" name="username" id="username" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input type="email" name="email" id="email" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" class="form-control" required>
+      </div>
 
-        <label for="map">Select Farm Location:</label>
-        <div id="map"></div>
-        <input type="hidden" id="latitude" name="latitude">
-        <input type="hidden" id="longitude" name="longitude">
+      <label for="map">Select Farm Location:</label>
+      <div id="map"></div>
+      <input type="hidden" id="latitude" name="latitude">
+      <input type="hidden" id="longitude" name="longitude">
 
-        <button type="submit" class="btn btn-primary">Add User</button>
-        <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
-        </form>
-    </main>
+      <button type="submit" class="btn btn-primary">Add User</button>
+      <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
+    </form>
   </div>
-
+    
   <footer class="bg-dark text-center text-white py-3 static-bottom">
     <%- include('../../partials/admin/footer') %>
   </footer>
@@ -60,34 +82,28 @@
   <script>
     let map, marker;
 
-    // Initialize map
     function initMap() {
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
 
-        // Initialize map centered at user's location
         map = L.map('map').setView([latitude, longitude], 13);
 
-        // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Add marker at user's location
         marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
 
-        // Set initial latitude and longitude values
+
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
 
-        // Update hidden inputs when marker is dragged
         marker.on('dragend', () => {
           const { lat, lng } = marker.getLatLng();
           document.getElementById('latitude').value = lat;
           document.getElementById('longitude').value = lng;
         });
 
-        // Update marker position on map click
         map.on('click', (e) => {
           marker.setLatLng(e.latlng);
           document.getElementById('latitude').value = e.latlng.lat;

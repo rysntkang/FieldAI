@@ -1,39 +1,33 @@
 const bcryptjs = require('bcryptjs');
-const { findUserByEmail, findUserByUsername, createUser } = require('../models/userModel');
+const { findUserByEmail, findUserByUsername, createUser, getAllUsers:modelGetAllUsers } = require('../models/userModel');
 
-const registerUser = async (req, res) => {
-    const { email, username, password, confirmPassword, latitude, longitude } = req.body;
-
-    if (!email || !username || !password || !confirmPassword || !latitude || !longitude) {
-        return res.status(400).send('All fields are required.');
-    }
-
-    if (password !== confirmPassword) {
-        return res.status(400).send('Passwords do not match.');
-    }
-
+const getAllUsers = async () => {
     try {
-        const existingEmail = await findUserByEmail(email);
-        const existingUsername = await findUserByUsername(username);
-        if (existingEmail) {
-            return res.status(400).send('Email is already in use.');
-        }
-        if (existingUsername) {
-            return res.status(400).send('Username is already taken.');
-        }
-
-        const hashedPassword = await bcryptjs.hash(password, 10);
-
-        const result = await createUser(email, username, hashedPassword, "Admin", latitude, longitude)
-        if (result) {
-            res.redirect('/admin/dashboard');
-        } else {
-            res.status(500).send('Error creating user.');
-        }
+        return await modelGetAllUsers();
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
+        throw error;
     }
 };
 
-module.exports = { registerUser };
+const addUser = async (username, email, password, latitude, longitude) => {
+    if (!username || !email || !password || !latitude || !longitude) {
+      throw new Error('All fields are required.');
+    }
+  
+    try {
+      const existingEmail = await findUserByEmail(email);
+      if (existingEmail) throw new Error('Email already in use.');
+  
+      const existingUsername = await findUserByUsername(username);
+      if (existingUsername) throw new Error('Username already taken.');
+  
+      const hashedPassword = await bcryptjs.hash(password, 10);
+      const success = await createUser(email, username, hashedPassword, 'User', latitude, longitude);
+      
+      return success;
+    } catch (error) {
+      throw error;
+    }
+  };
+
+module.exports = { getAllUsers, addUser };

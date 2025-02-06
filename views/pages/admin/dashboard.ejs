@@ -6,35 +6,59 @@
   <title>Admin Dashboard</title>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/adminStyles.css">
+  <style>
+    .sidebar {
+      height: 100vh;
+      width: 250px;
+      position: fixed;
+      top: 0;
+      left: 0;
+      background-color: #343a40;
+      padding-top: 20px;
+    }
+    .sidebar a {
+      color: #fff;
+      text-decoration: none;
+      padding: 15px 20px;
+      display: block;
+    }
+    .sidebar a:hover {
+      background-color: #495057;
+    }
+    .sidebar a.active {
+      background-color: #007bff;
+      color: #fff;
+    }
+    .content {
+      margin-left: 250px;
+      padding: 20px;
+    }
+  </style>
 </head>
 <body>
-    
-    <%- include('../../partials/admin/header') %>
 
-  <div class="d-flex">
-    <%- include('../../partials/admin/sidebar') %>
+  <%- include('../../partials/admin/sidebar') %>
 
-    <main class="p-4 flex-fill">
-      <h2>User List</h2>
-      <table class="table table-bordered">
-        <thead class="thead-dark">
+  <div class="content">
+    <h3>User List</h3>
+    <table class="table table-bordered">
+      <thead class="thead-dark">
+        <tr>
+          <th>User Id</th>
+          <th>Username</th>
+          <th>Email</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% users.forEach(user => { %>
           <tr>
-            <th>Id</th>
-            <th>Username</th>
-            <th>Email</th>
+            <td><%= user.user_id %></td>
+            <td><%= user.username %></td>
+            <td><%= user.email %></td>
           </tr>
-        </thead>
-        <tbody>
-          <% users.forEach(user => { %>
-            <tr>
-              <td><%= user.user_id %></td>
-              <td><%= user.username %></td>
-              <td><%= user.email %></td>
-            </tr>
-          <% }); %>
-        </tbody>
-      </table>
-    </main>
+        <% }); %>
+      </tbody>
+    </table>
   </div>
 
   <footer class="bg-dark text-center text-white py-3 static-bottom">
