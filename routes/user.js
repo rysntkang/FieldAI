@@ -51,6 +51,14 @@ router.get('/user/settings', ensureAuthenticated, (req, res) => {
   });
 });
 
+router.get('/user/tutorial', ensureAuthenticated, (req, res) => {
+  res.render('pages/user/tutorial', {
+    user: req.session.user,
+    activePage: 'tutorial'
+  });
+});
+
+
 router.post('/user/addSector', ensureAuthenticated, (req, res) => {
     createSector(req, res);
 });
