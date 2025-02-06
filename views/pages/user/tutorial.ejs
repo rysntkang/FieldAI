@@ -56,6 +56,9 @@
       <li class="nav-item">
         <a class="nav-link" id="weather-tab" data-toggle="tab" href="#weather" role="tab" aria-controls="weather" aria-selected="false">Weather Data</a>
       </li>
+      <li class="nav-item">
+        <a class="nav-link" id="attributes-tab" data-toggle="tab" href="#attributes" role="tab" aria-controls="attributes" aria-selected="false">Weather Attributes</a>
+      </li>
     </ul>
     <hr>
 
@@ -158,6 +161,16 @@
             </a>
             </div>
         </div>
+
+        <div class="tab-pane fade" id="attributes" role="tabpanel" aria-labelledby="attributes-tab">
+          <h4>Weather Data Attributes Explained</h4>
+          <ul>
+            <li><strong>Temperature:</strong> The maximum daily temperature, measured in °C. This indicates the heat conditions your crops are exposed to.</li>
+            <li><strong>Precipitation:</strong> The amount of rainfall, measured in millimeters (mm), which affects soil moisture and drainage.</li>
+            <li><strong>Wind Speed:</strong> The daily average wind speed, measured in meters per second (m/s), which can influence pollination and physical stress on plants.</li>
+            <li><strong>Growing Degree Days (GDD):</strong> The accumulated heat used to gauge crop development and suitability for planting.</li>
+            <li><strong>Soil Moisture:</strong> The volumetric water content of the soil (m³/m³), indicating if the crops have sufficient water.</li>
+          </ul>
         </div>
 
         <hr>
@@ -171,5 +184,14 @@
   </footer>
 
   <%- include('../../partials/user/scripts') %>
+
+  <script>
+    $(document).ready(function(){
+      var hash = window.location.hash;
+      if (hash) {
+        $('#tutorialTabs a[href="' + hash + '"]').tab('show');
+      }
+    });
+  </script>
 </body>
 </html>

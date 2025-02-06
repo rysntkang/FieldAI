@@ -32,31 +32,43 @@
     }
     .sector-card {
       padding: 0;
+      cursor: pointer;
     }
-
     .sector-card .card {
       height: 100%;
       margin: 0;
       transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
     }
-
     .sector-card .card:hover {
       transform: scale(1.02);
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      border: 1px solid #007bff;
     }
     #map {
       height: 300px;
       margin-top: 10px;
     }
+    /* New styling for chart containers */
     .chart-container {
-      height: 300px;
-      width: 100%;
       position: relative;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 20px;
+      height: 500px;
+    }
+    /* Styling for chart headers that include a tutorial button */
+    .chart-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .tutorial-btn {
+      font-size: 0.9em;
     }
     .chart-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
       width: 100%;
       height: 100%;
     }
@@ -140,32 +152,61 @@
               </div>
             </div>
           </div>
-          <!-- Heat Accumulation Chart -->
+          <!-- Heat Accumulation (GDD) Chart -->
           <div class="col-md-8">
             <div class="chart-container">
-              <h4>Heat Accumulation (GDD)</h4>
+              <div class="chart-header">
+                <h4>Heat Accumulation (GDD)</h4>
+                <button class="btn btn-link tutorial-btn" onclick="window.location.href='/user/tutorial#attributes'">
+                  <i class="fas fa-question-circle"></i> What is this?
+                </button>
+              </div>
               <canvas id="gddChart" class="chart-canvas"></canvas>
             </div>
           </div>
         </div>
         <hr>
+        <!-- Temperature Chart -->
         <div class="chart-container">
-          <h4>Temperature</h4>
+          <div class="chart-header">
+            <h4>Temperature</h4>
+            <button class="btn btn-link tutorial-btn" onclick="window.location.href='/user/tutorial#attributes'">
+              <i class="fas fa-question-circle"></i> What is this?
+            </button>
+          </div>
           <canvas id="temperatureChart" class="chart-canvas"></canvas>
         </div>
         <hr>
+        <!-- Precipitation Chart -->
         <div class="chart-container">
-          <h4>Precipitation</h4>
+          <div class="chart-header">
+            <h4>Precipitation</h4>
+            <button class="btn btn-link tutorial-btn" onclick="window.location.href='/user/tutorial#attributes'">
+              <i class="fas fa-question-circle"></i> What is this?
+            </button>
+          </div>
           <canvas id="precipitationChart" class="chart-canvas"></canvas>
         </div>
         <hr>
+        <!-- Wind Speed Chart -->
         <div class="chart-container">
-          <h4>Wind Speed</h4>
+          <div class="chart-header">
+            <h4>Wind Speed</h4>
+            <button class="btn btn-link tutorial-btn" onclick="window.location.href='/user/tutorial#attributes'">
+              <i class="fas fa-question-circle"></i> What is this?
+            </button>
+          </div>
           <canvas id="windSpeedChart" class="chart-canvas"></canvas>
         </div>
         <hr>
+        <!-- Soil Moisture Chart -->
         <div class="chart-container">
-          <h4>Soil Moisture</h4>
+          <div class="chart-header">
+            <h4>Soil Moisture</h4>
+            <button class="btn btn-link tutorial-btn" onclick="window.location.href='/user/tutorial#attributes'">
+              <i class="fas fa-question-circle"></i> What is this?
+            </button>
+          </div>
           <canvas id="soilMoistureChart" class="chart-canvas"></canvas>
         </div>
       </div>
@@ -191,7 +232,7 @@
       return new Chart(ctx, {
         type: type,
         data: {
-          labels: labels,  // Use the labels parameter
+          labels: labels,
           datasets: [{
             label: title,
             data: data,
@@ -204,11 +245,26 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
+          layout: {
+            padding: {
+              bottom: 20  // extra padding to give room for the x-axis labels
+            }
+          },
           scales: {
-            x: { title: { display: true, text: 'Date' } },
+            x: {
+              title: { display: true, text: 'Date' },
+              ticks: {
+                autoSkip: true,
+                maxRotation: 45,
+                minRotation: 45
+              }
+            },
             y: { title: { display: true, text: yLabel } }
           },
-          plugins: { legend: { position: 'top' }, title: { display: true, text: title } }
+          plugins: { 
+            legend: { position: 'top' }, 
+            title: { display: true, text: title } 
+          }
         }
       });
     }
@@ -216,7 +272,6 @@
     // End Global createChart function
     // -------------------------------
 
-    // Account's original coordinates (from the session)
     const accountLat = <%= user.latitude %>;
     const accountLng = <%= user.longitude %>;
 
@@ -313,7 +368,25 @@
     document.addEventListener('DOMContentLoaded', () => {
       const weatherData = <%- JSON.stringify(weatherData) %>;
       
-      // Generate and display farming tips
+      // --- Updated Farming Tips Generation ---
+      // Helper function to map tip text to a chart canvas id.
+      function getTargetChartId(tipText) {
+        const text = tipText.toLowerCase();
+        if (text.includes('irrigation') || text.includes('soil moisture')) {
+          return 'soilMoistureChart';
+        } else if (text.includes('plant')) {
+          return 'gddChart';
+        } else if (text.includes('rain') || text.includes('precipitation')) {
+          return 'precipitationChart';
+        } else if (text.includes('wind')) {
+          return 'windSpeedChart';
+        } else if (text.includes('temperature') || text.includes('frost')) {
+          return 'temperatureChart';
+        } else {
+          return null;
+        }
+      }
+      
       const tips = generateFarmingTips(weatherData);
       const farmingTipsDiv = document.getElementById('farmingTips');
       farmingTipsDiv.innerHTML = '';
@@ -321,6 +394,12 @@
         const tipDiv = document.createElement('div');
         tipDiv.classList.add('farming-tip');
         tipDiv.setAttribute('title', tip.explanation);
+        // Determine the target chart based on tip text.
+        const targetChartId = getTargetChartId(tip.text);
+        if (targetChartId) {
+          tipDiv.setAttribute('data-target-chart', targetChartId);
+          tipDiv.style.cursor = 'pointer';
+        }
         const emojiSpan = document.createElement('span');
         emojiSpan.classList.add('emoji');
         emojiSpan.textContent = tip.emoji;
@@ -331,6 +410,18 @@
         tipDiv.appendChild(textSpan);
         farmingTipsDiv.appendChild(tipDiv);
       });
+      
+      // Attach click event to all farming tips with a target chart.
+      document.querySelectorAll('.farming-tip[data-target-chart]').forEach(tip => {
+        tip.addEventListener('click', () => {
+          const targetId = tip.getAttribute('data-target-chart');
+          const targetCanvas = document.getElementById(targetId);
+          if (targetCanvas) {
+            targetCanvas.closest('.chart-container').scrollIntoView({ behavior: 'smooth' });
+          }
+        });
+      });
+      // --- End Updated Farming Tips Generation ---
       
       // Create initial charts using the global createChart function
       const temperatureChart = createChart(
@@ -406,12 +497,12 @@
         loadResultsModal(resultsBtn.dataset.sectorid);
       }
       
-      // If a sector card is clicked, fetch field-specific weather data.
       const sectorCard = e.target.closest('.sector-card');
       if (sectorCard) {
         const lat = sectorCard.getAttribute('data-lat');
         const lng = sectorCard.getAttribute('data-lng');
-        updateWeatherForSector(lat, lng, 'Sector');
+        const sectorName = sectorCard.querySelector('.card-title').textContent;
+        updateWeatherForSector(lat, lng, sectorName);
       }
     });
     
@@ -427,7 +518,25 @@
         document.getElementById('weatherSource').textContent =
           `Currently displaying weather data for: ${source} Location (${lat}, ${lng})`;
         
-        // Update farming tips
+        // --- Updated Farming Tips in Update ---
+        // Use the same helper function to re-generate farming tips.
+        function getTargetChartId(tipText) {
+          const text = tipText.toLowerCase();
+          if (text.includes('irrigation') || text.includes('soil moisture')) {
+            return 'soilMoistureChart';
+          } else if (text.includes('plant')) {
+            return 'gddChart';
+          } else if (text.includes('rain') || text.includes('precipitation')) {
+            return 'precipitationChart';
+          } else if (text.includes('wind')) {
+            return 'windSpeedChart';
+          } else if (text.includes('temperature') || text.includes('frost')) {
+            return 'temperatureChart';
+          } else {
+            return null;
+          }
+        }
+        
         const tips = generateFarmingTips(newWeatherData);
         const farmingTipsDiv = document.getElementById('farmingTips');
         farmingTipsDiv.innerHTML = '';
@@ -435,6 +544,11 @@
           const tipDiv = document.createElement('div');
           tipDiv.classList.add('farming-tip');
           tipDiv.setAttribute('title', tip.explanation);
+          const targetChartId = getTargetChartId(tip.text);
+          if (targetChartId) {
+            tipDiv.setAttribute('data-target-chart', targetChartId);
+            tipDiv.style.cursor = 'pointer';
+          }
           const emojiSpan = document.createElement('span');
           emojiSpan.classList.add('emoji');
           emojiSpan.textContent = tip.emoji;
@@ -445,6 +559,16 @@
           tipDiv.appendChild(textSpan);
           farmingTipsDiv.appendChild(tipDiv);
         });
+        document.querySelectorAll('.farming-tip[data-target-chart]').forEach(tip => {
+          tip.addEventListener('click', () => {
+            const targetId = tip.getAttribute('data-target-chart');
+            const targetCanvas = document.getElementById(targetId);
+            if (targetCanvas) {
+              targetCanvas.closest('.chart-container').scrollIntoView({ behavior: 'smooth' });
+            }
+          });
+        });
+        // --- End Updated Farming Tips in Update ---
         
         // Replace chart canvases with new ones
         document.getElementById('temperatureChart').parentNode.innerHTML = '<canvas id="temperatureChart" class="chart-canvas"></canvas>';
