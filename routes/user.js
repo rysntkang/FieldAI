@@ -87,7 +87,7 @@ router.get('/user/weather', ensureAuthenticated, async (req, res) => {
     if (!lat || !lng) {
       return res.status(400).json({ error: 'Missing latitude or longitude' });
     }
-    // Parse the coordinates and get weather data
+    
     const weatherData = await getWeatherData({ session: { user: { latitude: parseFloat(lat), longitude: parseFloat(lng) } } });
     res.json(weatherData);
   } catch (error) {
