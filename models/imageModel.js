@@ -79,8 +79,29 @@ const getAttemptImages = async (uploadId) => {
   }
 };
 
+const getAllUploadAttempts = async () => {
+  try {
+    const [attempts] = await db.execute(`
+      SELECT 
+        DATE(ua.upload_date) AS upload_date, 
+        COUNT(i.image_id) AS total_images,
+        SUM(CASE WHEN r.status = 'completed' THEN 1 ELSE 0 END) AS completed_images
+      FROM upload_attempts ua
+      LEFT JOIN images i ON ua.upload_id = i.upload_id
+      LEFT JOIN results r ON i.image_id = r.image_id
+      GROUP BY DATE(ua.upload_date)
+      ORDER BY upload_date DESC
+    `);
+    return attempts;
+  } catch (error) {
+    console.error('Error fetching all upload attempts:', error);
+    throw error;
+  }
+};
+
 module.exports = { 
   createUploadAttemptWithImages, 
   getUploadAttempts, 
-  getAttemptImages 
+  getAttemptImages,
+  getAllUploadAttempts 
 };

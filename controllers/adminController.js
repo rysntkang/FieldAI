@@ -5,8 +5,12 @@ const {
   getAllUsers: modelGetAllUsers,
   updateUser: modelUpdateUser,
   deleteUser: modelDeleteUser,
-  getUserById: modelGetUserById  // New function from the model
+  getUserById: modelGetUserById,
 } = require('../models/userModel');
+
+const { 
+  getAllUploadAttempts: modelGetAllUploadAttempts 
+} = require('../models/imageModel');
 
 const getAllUsers = async () => {
   try {
@@ -51,7 +55,6 @@ const deleteUserById = async (userId) => {
   }
 };
 
-// New function to fetch a user by ID.
 const getUserById = async (userId) => {
   try {
     return await modelGetUserById(userId);
@@ -60,4 +63,12 @@ const getUserById = async (userId) => {
   }
 };
 
-module.exports = { getAllUsers, addUser, updateUserSettings, deleteUserById, getUserById };
+const getUploadAttemptsData = async () => {
+  try {
+    return await modelGetAllUploadAttempts();
+  } catch (error) {
+    throw error;
+  }
+};
+
+module.exports = { getAllUsers, addUser, updateUserSettings, deleteUserById, getUserById, getUploadAttemptsData };

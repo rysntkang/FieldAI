@@ -1,12 +1,11 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin Dashboard</title>
+  <title>Add User - Admin</title>
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/adminStyles.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+  <%- include('../../partials/user/head') %>
   <style>
     .sidebar {
       height: 100vh;
@@ -34,11 +33,20 @@
       margin-left: 250px;
       padding: 20px;
     }
+    /* This container matches the style from your settings page */
+    .settings-container {
+      max-width: 800px;
+      margin: 20px auto;
+      padding: 20px;
+      background-color: #fff;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
     #map {
-        height: 300px;
-        margin-top: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
+      height: 300px;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
     }
   </style>
 </head>
@@ -47,29 +55,31 @@
   <%- include('../../partials/admin/sidebar') %>
 
   <div class="content">
-    <h3>Add Users</h3>
-    <form action="/admin/add-user" method="POST">
-      <div class="form-group">
-        <label for="username">Username</label>
-        <input type="text" name="username" id="username" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" name="email" id="email" class="form-control" required>
-      </div>
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" name="password" id="password" class="form-control" required>
-      </div>
-
-      <label for="map">Select Farm Location:</label>
-      <div id="map"></div>
-      <input type="hidden" id="latitude" name="latitude">
-      <input type="hidden" id="longitude" name="longitude">
-
-      <button type="submit" class="btn btn-primary">Add User</button>
-      <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
-    </form>
+    <div class="settings-container">
+      <h3>Add User</h3>
+      <form action="/admin/add-user" method="POST">
+        <div class="form-group">
+          <label for="username">Username</label>
+          <input type="text" name="username" id="username" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" name="email" id="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" name="password" id="password" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="map">Select Farm Location</label>
+          <div id="map"></div>
+          <input type="hidden" id="latitude" name="latitude">
+          <input type="hidden" id="longitude" name="longitude">
+        </div>
+        <button type="submit" class="btn btn-primary">Add User</button>
+        <a href="/admin/dashboard" class="btn btn-secondary">Cancel</a>
+      </form>
+    </div>
   </div>
     
   <footer class="bg-dark text-center text-white py-3 static-bottom">
@@ -93,7 +103,6 @@
         }).addTo(map);
 
         marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
-
 
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
