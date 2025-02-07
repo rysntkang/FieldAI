@@ -4,10 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
-  <!-- Bootstrap CSS, Admin Styles, and Leaflet CSS -->
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/adminStyles.css">
-  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     .sidebar {
       height: 100vh;
@@ -34,17 +32,6 @@
     .content {
       margin-left: 250px;
       padding: 20px;
-    }
-    /* Style for the map inside the modal */
-    #editMap {
-      height: 300px;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      margin-bottom: 10px;
-    }
-    /* Style for the chart container */
-    #chartContainer {
-      margin-top: 40px;
     }
   </style>
 </head>
@@ -95,18 +82,12 @@
         <% }); %>
       </tbody>
     </table>
-
-    <!-- Chart Section -->
-    <div id="chartContainer">
-      <h3>Upload Attempts Chart</h3>
-      <canvas id="uploadAttemptsChart" width="400" height="200"></canvas>
-    </div>
   </div>
 
-  <!-- Edit User Modal with Map -->
+  <!-- Edit User Modal -->
   <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-      <!-- Standard form submission for editing user -->
+      <!-- Note: standard form submission -->
       <form action="/admin/edit-user" method="POST" id="editUserForm">
         <div class="modal-content">
           <div class="modal-header">
@@ -126,13 +107,13 @@
               <label for="editEmail">Email</label>
               <input type="email" class="form-control" name="email" id="editEmail" required>
             </div>
-            <!-- Farm Location Map -->
             <div class="form-group">
-              <label>Farm Location</label>
-              <div id="editMap"></div>
-              <!-- Hidden fields for latitude and longitude -->
-              <input type="hidden" name="latitude" id="editLatitude">
-              <input type="hidden" name="longitude" id="editLongitude">
+              <label for="editLatitude">Latitude</label>
+              <input type="text" class="form-control" name="latitude" id="editLatitude">
+            </div>
+            <div class="form-group">
+              <label for="editLongitude">Longitude</label>
+              <input type="text" class="form-control" name="longitude" id="editLongitude">
             </div>
           </div>
           <div class="modal-footer">
@@ -176,21 +157,23 @@
     <%- include('../../partials/admin/footer') %>
   </footer>
 
+  <!-- jQuery and Bootstrap JS -->
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   
   <script>
+    // When an edit button is clicked, pull the user info from the row’s data attributes
     document.querySelectorAll('.btn-edit').forEach(button => {
       button.addEventListener('click', function() {
         const userId = this.getAttribute('data-user-id');
         const row = document.querySelector('tr[data-user-id="' + userId + '"]');
+        // Get each piece of data from its data attribute
         const username = row.getAttribute('data-username');
         const email = row.getAttribute('data-email');
         const latitude = row.getAttribute('data-latitude');
         const longitude = row.getAttribute('data-longitude');
         
+        // Populate the modal form fields
         document.getElementById('editUserId').value = userId;
         document.getElementById('editUsername').value = username;
         document.getElementById('editEmail').value = email;
@@ -199,87 +182,12 @@
       });
     });
     
+    // When a delete button is clicked, set the hidden field value in the delete modal
     document.querySelectorAll('.btn-delete').forEach(button => {
       button.addEventListener('click', function() {
         const userId = this.getAttribute('data-user-id');
         document.getElementById('deleteUserId').value = userId;
       });
-    });
-    
-    let editMap, editMarker;
-    $('#editUserModal').on('shown.bs.modal', function () {
-      const lat = parseFloat(document.getElementById('editLatitude').value) || 0;
-      const lng = parseFloat(document.getElementById('editLongitude').value) || 0;
-      
-      if(editMap) {
-        editMap.remove();
-      }
-      
-      editMap = L.map('editMap').setView([lat, lng], 13);
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      }).addTo(editMap);
-      editMarker = L.marker([lat, lng], { draggable: true }).addTo(editMap);
-      
-      editMarker.on('dragend', function() {
-        const coords = editMarker.getLatLng();
-        document.getElementById('editLatitude').value = coords.lat;
-        document.getElementById('editLongitude').value = coords.lng;
-      });
-      
-      editMap.on('click', function(e) {
-        editMarker.setLatLng(e.latlng);
-        document.getElementById('editLatitude').value = e.latlng.lat;
-        document.getElementById('editLongitude').value = e.latlng.lng;
-      });
-    });
-    
-    const uploadAttemptsData = <%- JSON.stringify(uploadAttemptsData) %>;
-    
-    const labels = uploadAttemptsData.map(item => item.upload_date);
-    const totalImages = uploadAttemptsData.map(item => item.total_images);
-    const completedImages = uploadAttemptsData.map(item => item.completed_images);
-    
-    const ctx = document.getElementById('uploadAttemptsChart').getContext('2d');
-    const uploadAttemptsChart = new Chart(ctx, {
-      type: 'line',
-      data: {
-        labels: labels,
-        datasets: [
-          {
-            label: 'Total Images',
-            data: totalImages,
-            borderColor: 'rgba(75,192,192,1)',
-            fill: false,
-            tension: 0.1
-          },
-          {
-            label: 'Completed Images',
-            data: completedImages,
-            borderColor: 'rgba(153,102,255,1)',
-            fill: false,
-            tension: 0.1
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        scales: {
-          x: {
-            title: {
-              display: true,
-              text: 'Upload Date'
-            }
-          },
-          y: {
-            title: {
-              display: true,
-              text: 'Count'
-            },
-            beginAtZero: true
-          }
-        }
-      }
     });
   </script>
 </body>

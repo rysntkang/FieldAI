@@ -4,7 +4,7 @@ const {
   addUser,
   updateUserSettings,
   deleteUserById,
-  getUploadAttemptsData
+  getUserById  // if needed elsewhere
 } = require('../controllers/adminController');
 
 const router = express.Router();
@@ -17,18 +17,17 @@ const ensureAuthenticated = (req, res, next) => {
 router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
   try {
     const users = await getAllUsers();
-    const uploadAttemptsData = await getUploadAttemptsData();
     res.render('pages/admin/dashboard', { 
       users,
-      uploadAttemptsData,
       activePage: 'dashboard'
     });
   } catch (error) {
-    console.error('Error fetching users or upload attempts:', error);
-    res.status(500).send('An error occurred while fetching data.');
+    console.error('Error fetching users:', error);
+    res.status(500).send('An error occurred while fetching users.');
   }
 });
 
+// Existing add-user routes remain unchanged…
 router.get('/admin/add-user', ensureAuthenticated, async (req, res) => {
   res.render('pages/admin/add-user', { activePage: 'add-user' });
 });
@@ -48,6 +47,7 @@ router.post('/admin/add-user', ensureAuthenticated, async (req, res) => {
   }
 });
 
+// POST route to update user settings via the modal form
 router.post('/admin/edit-user', ensureAuthenticated, async (req, res) => {
   const { user_id, username, email, latitude, longitude } = req.body;
   try {
@@ -63,6 +63,7 @@ router.post('/admin/edit-user', ensureAuthenticated, async (req, res) => {
   }
 });
 
+// POST route to delete a user via the modal confirmation form
 router.post('/admin/delete-user', ensureAuthenticated, async (req, res) => {
   const { user_id } = req.body;
   try {
