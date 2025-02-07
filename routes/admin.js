@@ -4,8 +4,9 @@ const {
   addUser,
   updateUserSettings,
   deleteUserById,
-  getUserById  // if needed elsewhere
 } = require('../controllers/adminController');
+
+const { getAllUploadAttempts } = require('../controllers/imageController');
 
 const router = express.Router();
 
@@ -17,13 +18,25 @@ const ensureAuthenticated = (req, res, next) => {
 router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
   try {
     const users = await getAllUsers();
+    const uploadAttempts = await getAllUploadAttempts();
     res.render('pages/admin/dashboard', { 
       users,
+      uploadAttempts,
       activePage: 'dashboard'
     });
   } catch (error) {
-    console.error('Error fetching users:', error);
-    res.status(500).send('An error occurred while fetching users.');
+    console.error('Error fetching data:', error);
+    res.status(500).send('An error occurred while fetching data.');
+  }
+});
+
+router.get('/admin/upload-attempts', ensureAuthenticated, async (req, res) => {
+  try {
+    const uploadAttempts = await getAllUploadAttempts();
+    res.json(uploadAttempts);
+  } catch (error) {
+    console.error('Error fetching upload attempts:', error);
+    res.status(500).json({ error: 'Failed to fetch upload attempts' });
   }
 });
 

@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Admin Dashboard</title>
+  <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.25/datatables.min.css"/>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/adminStyles.css">
   <style>
@@ -52,7 +53,6 @@
       </thead>
       <tbody>
         <% users.forEach(user => { %>
-          <!-- Embed user data as separate data attributes (no JSON string) -->
           <tr 
             data-user-id="<%= user.user_id %>" 
             data-username="<%= user.username %>" 
@@ -63,14 +63,12 @@
             <td class="username"><%= user.username %></td>
             <td class="email"><%= user.email %></td>
             <td>
-              <!-- Edit button: simply holds the user id -->
               <button class="btn btn-sm btn-primary btn-edit" 
                       data-user-id="<%= user.user_id %>" 
                       data-toggle="modal" 
                       data-target="#editUserModal">
                 Edit
               </button>
-              <!-- Delete button: triggers a confirmation modal -->
               <button class="btn btn-sm btn-danger btn-delete" 
                       data-user-id="<%= user.user_id %>" 
                       data-toggle="modal" 
@@ -82,12 +80,58 @@
         <% }); %>
       </tbody>
     </table>
+
+    <h3 class="mt-5">Upload Attempts</h3>
+    <table class="table table-bordered" id="uploadsTable">
+      <thead class="thead-dark">
+        <tr>
+          <th>Upload ID</th>
+          <th>Username</th>
+          <th>Sector ID</th>
+          <th>Upload Date</th>
+          <th>Total Images</th>
+          <th>Completed</th>
+          <th>Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% uploadAttempts.forEach(attempt => { 
+          // Convert the string values to numbers.
+          const total = Number(attempt.total_images);
+          const completed = Number(attempt.completed_images);%>
+       <tr>
+         <td><%= attempt.upload_id %></td>
+         <td><%= attempt.username %></td>
+         <td><%= attempt.sector_id %></td>
+         <td><%= new Date(attempt.upload_date).toLocaleString() %></td>
+         <td><%= total %></td>
+         <td><%= completed %></td>
+         <td>
+           <% if (total > 0 && completed === total) { %>
+             <span class="badge badge-success">Completed</span>
+           <% } else if (total > 0 && completed > 0) { %>
+             <span class="badge badge-warning">Partial</span>
+           <% } else { %>
+             <span class="badge badge-danger">Pending</span>
+           <% } %>
+         </td>
+         <td>
+           <button class="btn btn-sm btn-info btn-view-images" 
+                   data-upload-id="<%= attempt.upload_id %>" 
+                   data-toggle="modal" 
+                   data-target="#viewImagesModal">
+             View Images
+           </button>
+         </td>
+       </tr>
+      <% }); %>
+      </tbody>
+    </table>
   </div>
 
-  <!-- Edit User Modal -->
   <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-      <!-- Note: standard form submission -->
       <form action="/admin/edit-user" method="POST" id="editUserForm">
         <div class="modal-content">
           <div class="modal-header">
@@ -97,7 +141,6 @@
             </button>
           </div>
           <div class="modal-body">
-            <!-- Hidden field for the user id -->
             <input type="hidden" name="user_id" id="editUserId">
             <div class="form-group">
               <label for="editUsername">Username</label>
@@ -118,7 +161,6 @@
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <!-- Submit the form to update the user -->
             <button type="submit" class="btn btn-primary">Save Changes</button>
           </div>
         </div>
@@ -126,10 +168,8 @@
     </div>
   </div>
 
-  <!-- Delete User Modal -->
   <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
-      <!-- Standard form submission for delete -->
       <form action="/admin/delete-user" method="POST" id="deleteUserForm">
         <div class="modal-content">
           <div class="modal-header">
@@ -140,12 +180,10 @@
           </div>
           <div class="modal-body">
             <p>Are you sure you want to delete this user?</p>
-            <!-- Hidden field for the user id -->
             <input type="hidden" name="user_id" id="deleteUserId">
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-            <!-- Submit the delete form -->
             <button type="submit" class="btn btn-danger">Delete</button>
           </div>
         </div>
@@ -153,27 +191,50 @@
     </div>
   </div>
 
+  <div class="modal fade" id="viewImagesModal" tabindex="-1" role="dialog" aria-labelledby="viewImagesModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="viewImagesModalLabel">Upload Images</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div class="container-fluid">
+            <div class="row" id="imagesContainer">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <footer class="bg-dark text-center text-white py-3 static-bottom">
     <%- include('../../partials/admin/footer') %>
   </footer>
 
-  <!-- jQuery and Bootstrap JS -->
+  <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.25/datatables.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    var uploadAttemptsData = <%- JSON.stringify(uploadAttempts) %>;
+  </script>
   
   <script>
-    // When an edit button is clicked, pull the user info from the row’s data attributes
     document.querySelectorAll('.btn-edit').forEach(button => {
       button.addEventListener('click', function() {
         const userId = this.getAttribute('data-user-id');
         const row = document.querySelector('tr[data-user-id="' + userId + '"]');
-        // Get each piece of data from its data attribute
         const username = row.getAttribute('data-username');
         const email = row.getAttribute('data-email');
         const latitude = row.getAttribute('data-latitude');
         const longitude = row.getAttribute('data-longitude');
         
-        // Populate the modal form fields
         document.getElementById('editUserId').value = userId;
         document.getElementById('editUsername').value = username;
         document.getElementById('editEmail').value = email;
@@ -182,12 +243,46 @@
       });
     });
     
-    // When a delete button is clicked, set the hidden field value in the delete modal
     document.querySelectorAll('.btn-delete').forEach(button => {
       button.addEventListener('click', function() {
         const userId = this.getAttribute('data-user-id');
         document.getElementById('deleteUserId').value = userId;
       });
+    });
+
+    $(document).ready(function() {
+      $('#uploadsTable').DataTable({
+        order: [[3, 'desc']], 
+        responsive: true,
+        columnDefs: [
+          { responsivePriority: 1, targets: 0 },
+          { responsivePriority: 2, targets: 3 },
+          { responsivePriority: 3, targets: 6 }
+        ]
+      });
+    });
+
+    $(document).on('click', '.btn-view-images', function() {
+      const uploadId = $(this).data('upload-id');
+      const attempt = uploadAttemptsData.find(item => item.upload_id == uploadId);
+      $('#imagesContainer').html('');
+      if (attempt && attempt.images && attempt.images.length > 0) {
+        attempt.images.forEach(image => {
+          let imageHtml = `
+            <div class="col-md-4 mb-3">
+              <div class="card">
+                <img src="${image.file_path}" class="card-img-top" alt="Uploaded Image">
+                <div class="card-body p-2">
+                  <p class="card-text text-center">Corn Count: ${image.corn_count !== null ? image.corn_count : 'N/A'}</p>
+                </div>
+              </div>
+            </div>
+          `;
+          $('#imagesContainer').append(imageHtml);
+        });
+      } else {
+        $('#imagesContainer').html('<p>No images available for this upload attempt.</p>');
+      }
     });
   </script>
 </body>
