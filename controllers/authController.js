@@ -1,38 +1,38 @@
 const bcryptjs = require('bcryptjs');
 const { findUserByEmail, findUserByUsername, createUser } = require('../models/userModel');
 
-// controllers/authController.js
 const registerUser = async (req, res) => {
     const { email, username, password, confirmPassword, latitude, longitude } = req.body;
 
     if (!email || !username || !password || !confirmPassword || !latitude || !longitude) {
-        return res.status(400).send('All fields are required.');
+        return res.render('pages/register', { errorMessage: 'All fields are required.' });
     }
 
     if (password !== confirmPassword) {
-        return res.status(400).send('Passwords do not match.');
+        return res.render('pages/register', { errorMessage: 'Passwords do not match.' });
     }
 
     try {
         const existingEmail = await findUserByEmail(email);
         const existingUsername = await findUserByUsername(username);
-        if (existingEmail) return res.status(400).send('Email is already in use.');
-        if (existingUsername) return res.status(400).send('Username is already taken.');
+        if (existingEmail) return res.render('pages/register', { errorMessage: 'Email is already in use.' });
+        if (existingUsername) return res.render('pages/register', { errorMessage: 'Username is already taken.' });
+		
 
         const hashedPassword = await bcryptjs.hash(password, 10);
-
         const result = await createUser(email, username, hashedPassword, "User", latitude, longitude);
 
         if (result) {
             res.redirect('/login');
         } else {
-            res.status(500).send('Error creating user.');
+            res.render('pages/register', { errorMessage: 'Error creating user.' });
         }
     } catch (error) {
         console.error('Registration Error:', error);
-        res.status(500).send('Internal Server Error: ' + error.message);
+        res.render('pages/register', { errorMessage: 'Internal Server Error: ' + error.message });
     }
 };
+
 
 const loginUser = async (req, res) => {
     const { username, password } = req.body;

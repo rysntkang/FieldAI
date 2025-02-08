@@ -23,23 +23,21 @@
     .btn-primary {
         width: 100%;
     }
-    
     #map {
         height: 300px;
         margin-top: 20px;
         border: 1px solid #ddd;
         border-radius: 8px;
     }
-    
   </style>
 </head>
 <body>
   <%- include('../partials/header') %>
-  
+
   <div class="container">
     <div class="register-container">
       <h2>Register</h2>
-      <form action="/register" method="POST">
+      <form id="registerForm" action="/register" method="POST">
         <div class="form-group">
           <label for="email">Email:</label>
           <input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>
@@ -66,43 +64,35 @@
       </form>
     </div>
   </div>
-  
+
   <footer class="bg-dark text-center text-white py-3 static-bottom">
     <%- include('../partials/footer') %>
   </footer>
 
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
   <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
   <script>
     let map, marker;
-
-    // Initialize map
     function initMap() {
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
-
-        // Initialize map centered at user's location
         map = L.map('map').setView([latitude, longitude], 13);
-
-        // Add OpenStreetMap tiles
         L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
           attribution: '© OpenStreetMap contributors'
         }).addTo(map);
 
-        // Add marker at user's location
         marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
-
-        // Set initial latitude and longitude values
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
 
-        // Update hidden inputs when marker is dragged
         marker.on('dragend', () => {
           const { lat, lng } = marker.getLatLng();
           document.getElementById('latitude').value = lat;
           document.getElementById('longitude').value = lng;
         });
 
-        // Update marker position on map click
         map.on('click', (e) => {
           marker.setLatLng(e.latlng);
           document.getElementById('latitude').value = e.latlng.lat;
@@ -112,9 +102,37 @@
         alert('Unable to fetch location.');
       });
     }
-
     document.addEventListener('DOMContentLoaded', initMap);
-  </script>
 
+    document.addEventListener("DOMContentLoaded", function () {
+        const emailInput = document.getElementById("email");
+        const usernameInput = document.getElementById("username");
+
+        <% if (typeof errorMessage !== "undefined" && errorMessage) { %>
+
+            if ("<%= errorMessage %>".includes("Email is already in use")) {
+                emailInput.setCustomValidity("Email is already in use.");
+                emailInput.reportValidity();
+            }
+
+
+            if ("<%= errorMessage %>".includes("Username is already taken")) {
+                usernameInput.setCustomValidity("Username is already taken.");
+                usernameInput.reportValidity();
+            }
+
+
+            if ("<%= errorMessage %>".includes("Passwords do not match")) {
+                document.getElementById("confirmPassword").setCustomValidity("Passwords do not match.");
+                document.getElementById("confirmPassword").reportValidity();
+            }
+
+
+            emailInput.addEventListener("input", () => emailInput.setCustomValidity(""));
+            usernameInput.addEventListener("input", () => usernameInput.setCustomValidity(""));
+            document.getElementById("confirmPassword").addEventListener("input", () => document.getElementById("confirmPassword").setCustomValidity(""));
+        <% } %>
+    });
+  </script>
 </body>
 </html>
