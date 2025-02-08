@@ -5,6 +5,7 @@ const {
   getAllUploadAttempts: modelGetAllUploadAttempts,
   getAttemptImages: modelGetAttemptImages 
 } = require('../models/imageModel');
+const { processImage } = require('../services/mlService');
 
 const handleImageUpload = async (req, res) => {
   try {
@@ -40,7 +41,6 @@ const handleImageUpload = async (req, res) => {
 const getUploadAttempts = async (sectorId) => {
   try {
     const attempts = await modelGetUploadAttempts(sectorId);
-    // Optionally, attach images for each attempt
     for (const attempt of attempts) {
       attempt.images = await modelGetAttemptImages(attempt.upload_id);
     }
@@ -54,7 +54,6 @@ const getUploadAttempts = async (sectorId) => {
 const getAllUploadAttempts = async () => {
   try {
     const attempts = await modelGetAllUploadAttempts();
-    // Optionally, attach images for each attempt
     for (const attempt of attempts) {
       attempt.images = await modelGetAttemptImages(attempt.upload_id);
     }
