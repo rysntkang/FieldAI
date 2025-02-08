@@ -7,9 +7,8 @@ const authRouter = require('./routes/auth');
 const adminRouter = require('./routes/admin');
 const userRouter = require('./routes/user');
 const logger = require('./middleware/logger');
-
+var MemcachedStore = require('connect-memcached')(session);
 const app = express();
-
 app.use(logger);
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({ extended: false }));
