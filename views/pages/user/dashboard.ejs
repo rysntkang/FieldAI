@@ -48,7 +48,7 @@
       height: 300px;
       margin-top: 10px;
     }
-    /* New styling for chart containers */
+    /* Chart container styling */
     .chart-container {
       position: relative;
       background-color: #fff;
@@ -58,7 +58,7 @@
       margin-bottom: 20px;
       height: 500px;
     }
-    /* Styling for chart headers that include a tutorial button */
+    /* Chart header styling */
     .chart-header {
       display: flex;
       justify-content: space-between;
@@ -82,13 +82,13 @@
       font-size: 1.2em;
       margin-right: 8px;
     }
-    /* Style for the weather source label */
+    /* Weather source label styling */
     #weatherSource {
       margin-top: 10px;
       font-style: italic;
       color: #555;
     }
-    /* Style for the reset button */
+    /* Reset button styling */
     #resetWeatherBtn {
       margin: 10px 0;
     }
@@ -139,7 +139,9 @@
     <% if (weatherData && weatherData.length > 0) { %>
       <h3>Weather Trend Forecast</h3>
       <!-- Weather source information and reset button -->
-      <p id="weatherSource">Currently displaying weather data for: Account Location (<%= user.latitude %>, <%= user.longitude %>)</p>
+      <p id="weatherSource">
+        Currently displaying weather data for: Account Location (<%= user.latitude %>, <%= user.longitude %>)
+      </p>
       <button id="resetWeatherBtn" class="btn btn-info btn-sm">Reset to Account Location</button>
       
       <div id="temperature-section" class="content-section">
@@ -224,9 +226,10 @@
 
   <%- include('../../partials/user/scripts') %>
   <script>
-    // -------------------------------
-    // Global: createChart function
-    // -------------------------------
+    // Declare global chart variables
+    let temperatureChart, precipitationChart, windSpeedChart, gddChart, soilMoistureChart;
+
+    // Create a chart using Chart.js
     function createChart(canvasId, data, labels, title, yLabel, borderColor, backgroundColor, type = 'line') {
       const ctx = document.getElementById(canvasId).getContext('2d');
       return new Chart(ctx, {
@@ -245,32 +248,21 @@
         options: {
           responsive: true,
           maintainAspectRatio: false,
-          layout: {
-            padding: {
-              bottom: 20  // extra padding to give room for the x-axis labels
-            }
-          },
+          layout: { padding: { bottom: 20 } },
           scales: {
             x: {
               title: { display: true, text: 'Date' },
-              ticks: {
-                autoSkip: true,
-                maxRotation: 45,
-                minRotation: 45
-              }
+              ticks: { autoSkip: true, maxRotation: 45, minRotation: 45 }
             },
             y: { title: { display: true, text: yLabel } }
           },
-          plugins: { 
-            legend: { position: 'top' }, 
-            title: { display: true, text: title } 
+          plugins: {
+            legend: { position: 'top' },
+            title: { display: true, text: title }
           }
         }
       });
     }
-    // -------------------------------
-    // End Global createChart function
-    // -------------------------------
 
     const accountLat = <%= user.latitude %>;
     const accountLng = <%= user.longitude %>;
@@ -281,14 +273,10 @@
       setTimeout(() => map.invalidateSize(), 100);
     });
 
-    // Map Functions
+    // Map functions
     let map, marker;
     function initMap() {
-      if (map) {
-        map.off();
-        map.remove();
-        map = null;
-      }
+      if (map) { map.off(); map.remove(); map = null; }
       navigator.geolocation.getCurrentPosition(position => {
         const { latitude, longitude } = position.coords;
         map = L.map('map').setView([latitude, longitude], 13);
@@ -304,7 +292,7 @@
       });
     }
 
-    // Farming Tips Function
+    // Farming tips function
     function generateFarmingTips(data) {
       const today = data[0];
       const tips = [];
@@ -367,34 +355,25 @@
 
     document.addEventListener('DOMContentLoaded', () => {
       const weatherData = <%- JSON.stringify(weatherData) %>;
-      
-      // --- Updated Farming Tips Generation ---
-      // Helper function to map tip text to a chart canvas id.
+
+      // Helper to map tip text to a chart canvas id
       function getTargetChartId(tipText) {
         const text = tipText.toLowerCase();
-        if (text.includes('irrigation') || text.includes('soil moisture')) {
-          return 'soilMoistureChart';
-        } else if (text.includes('plant')) {
-          return 'gddChart';
-        } else if (text.includes('rain') || text.includes('precipitation')) {
-          return 'precipitationChart';
-        } else if (text.includes('wind')) {
-          return 'windSpeedChart';
-        } else if (text.includes('temperature') || text.includes('frost')) {
-          return 'temperatureChart';
-        } else {
-          return null;
-        }
+        if (text.includes('irrigation') || text.includes('soil moisture')) return 'soilMoistureChart';
+        else if (text.includes('plant')) return 'gddChart';
+        else if (text.includes('rain') || text.includes('precipitation')) return 'precipitationChart';
+        else if (text.includes('wind')) return 'windSpeedChart';
+        else if (text.includes('temperature') || text.includes('frost')) return 'temperatureChart';
+        else return null;
       }
-      
+
       const tips = generateFarmingTips(weatherData);
       const farmingTipsDiv = document.getElementById('farmingTips');
       farmingTipsDiv.innerHTML = '';
-      tips.forEach(function(tip) {
+      tips.forEach(tip => {
         const tipDiv = document.createElement('div');
         tipDiv.classList.add('farming-tip');
         tipDiv.setAttribute('title', tip.explanation);
-        // Determine the target chart based on tip text.
         const targetChartId = getTargetChartId(tip.text);
         if (targetChartId) {
           tipDiv.setAttribute('data-target-chart', targetChartId);
@@ -410,8 +389,7 @@
         tipDiv.appendChild(textSpan);
         farmingTipsDiv.appendChild(tipDiv);
       });
-      
-      // Attach click event to all farming tips with a target chart.
+
       document.querySelectorAll('.farming-tip[data-target-chart]').forEach(tip => {
         tip.addEventListener('click', () => {
           const targetId = tip.getAttribute('data-target-chart');
@@ -421,10 +399,9 @@
           }
         });
       });
-      // --- End Updated Farming Tips Generation ---
-      
-      // Create initial charts using the global createChart function
-      const temperatureChart = createChart(
+
+      // Create the initial charts
+      temperatureChart = createChart(
         'temperatureChart',
         weatherData.map(item => item.temp_max),
         weatherData.map(item => item.date),
@@ -433,8 +410,7 @@
         'rgba(255, 99, 132, 1)',
         'rgba(255, 99, 132, 0.2)'
       );
-      
-      const precipitationChart = createChart(
+      precipitationChart = createChart(
         'precipitationChart',
         weatherData.map(item => item.precipitation),
         weatherData.map(item => item.date),
@@ -444,8 +420,7 @@
         'rgba(75, 192, 192, 0.5)',
         'bar'
       );
-      
-      const windSpeedChart = createChart(
+      windSpeedChart = createChart(
         'windSpeedChart',
         weatherData.map(item => item.wind_speed),
         weatherData.map(item => item.date),
@@ -454,8 +429,7 @@
         'rgba(255, 205, 86, 1)',
         'rgba(255, 205, 86, 0.2)'
       );
-      
-      const gddChart = createChart(
+      gddChart = createChart(
         'gddChart',
         weatherData.map(item => item.gdd_accumulated),
         weatherData.map(item => item.date),
@@ -464,8 +438,7 @@
         'rgba(139, 69, 19, 1)',
         'rgba(139, 69, 19, 0.2)'
       );
-      
-      const soilMoistureChart = createChart(
+      soilMoistureChart = createChart(
         'soilMoistureChart',
         weatherData.map(item => item.soil_moisture),
         weatherData.map(item => item.date),
@@ -474,7 +447,7 @@
         'rgba(0, 123, 255, 1)',
         'rgba(0, 123, 255, 0.2)'
       );
-      
+
       window.addEventListener('resize', () => {
         temperatureChart.resize();
         precipitationChart.resize();
@@ -488,15 +461,12 @@
     document.getElementById('sectors-container').addEventListener('click', (e) => {
       const uploadBtn = e.target.closest('.upload-btn');
       const resultsBtn = e.target.closest('.view-results-btn');
-      
       if (uploadBtn) {
         document.getElementById('uploadSectorId').value = uploadBtn.dataset.sectorid;
       }
-      
       if (resultsBtn) {
         loadResultsModal(resultsBtn.dataset.sectorid);
       }
-      
       const sectorCard = e.target.closest('.sector-card');
       if (sectorCard) {
         const lat = sectorCard.getAttribute('data-lat');
@@ -505,42 +475,33 @@
         updateWeatherForSector(lat, lng, sectorName);
       }
     });
-    
+
     // Function to update weather data for a specific location.
-    // The parameter "source" indicates if the data is from a "Sector" or "Account".
     async function updateWeatherForSector(lat, lng, source = 'Sector') {
       try {
         const response = await fetch(`/user/weather?lat=${lat}&lng=${lng}`);
         if (!response.ok) throw new Error(await response.text());
         const newWeatherData = await response.json();
-        
+
         // Update the weather source label
         document.getElementById('weatherSource').textContent =
           `Currently displaying weather data for: ${source} Location (${lat}, ${lng})`;
-        
-        // --- Updated Farming Tips in Update ---
-        // Use the same helper function to re-generate farming tips.
+
+        // Update farming tips with the new weather data
         function getTargetChartId(tipText) {
           const text = tipText.toLowerCase();
-          if (text.includes('irrigation') || text.includes('soil moisture')) {
-            return 'soilMoistureChart';
-          } else if (text.includes('plant')) {
-            return 'gddChart';
-          } else if (text.includes('rain') || text.includes('precipitation')) {
-            return 'precipitationChart';
-          } else if (text.includes('wind')) {
-            return 'windSpeedChart';
-          } else if (text.includes('temperature') || text.includes('frost')) {
-            return 'temperatureChart';
-          } else {
-            return null;
-          }
+          if (text.includes('irrigation') || text.includes('soil moisture')) return 'soilMoistureChart';
+          else if (text.includes('plant')) return 'gddChart';
+          else if (text.includes('rain') || text.includes('precipitation')) return 'precipitationChart';
+          else if (text.includes('wind')) return 'windSpeedChart';
+          else if (text.includes('temperature') || text.includes('frost')) return 'temperatureChart';
+          else return null;
         }
-        
+
         const tips = generateFarmingTips(newWeatherData);
         const farmingTipsDiv = document.getElementById('farmingTips');
         farmingTipsDiv.innerHTML = '';
-        tips.forEach(function(tip) {
+        tips.forEach(tip => {
           const tipDiv = document.createElement('div');
           tipDiv.classList.add('farming-tip');
           tipDiv.setAttribute('title', tip.explanation);
@@ -568,16 +529,16 @@
             }
           });
         });
-        // --- End Updated Farming Tips in Update ---
-        
-        // Replace chart canvases with new ones
-        document.getElementById('temperatureChart').parentNode.innerHTML = '<canvas id="temperatureChart" class="chart-canvas"></canvas>';
-        document.getElementById('precipitationChart').parentNode.innerHTML = '<canvas id="precipitationChart" class="chart-canvas"></canvas>';
-        document.getElementById('windSpeedChart').parentNode.innerHTML = '<canvas id="windSpeedChart" class="chart-canvas"></canvas>';
-        document.getElementById('gddChart').parentNode.innerHTML = '<canvas id="gddChart" class="chart-canvas"></canvas>';
-        
-        // Re-create charts with newWeatherData using the global createChart function
-        const temperatureChart = createChart(
+
+        // Destroy existing charts (if they exist) before creating new ones
+        if (temperatureChart) temperatureChart.destroy();
+        if (precipitationChart) precipitationChart.destroy();
+        if (windSpeedChart) windSpeedChart.destroy();
+        if (gddChart) gddChart.destroy();
+        if (soilMoistureChart) soilMoistureChart.destroy();
+
+        // Re-create charts with the new weather data
+        temperatureChart = createChart(
           'temperatureChart',
           newWeatherData.map(item => item.temp_max),
           newWeatherData.map(item => item.date),
@@ -586,7 +547,7 @@
           'rgba(255, 99, 132, 1)',
           'rgba(255, 99, 132, 0.2)'
         );
-        const precipitationChart = createChart(
+        precipitationChart = createChart(
           'precipitationChart',
           newWeatherData.map(item => item.precipitation),
           newWeatherData.map(item => item.date),
@@ -596,7 +557,7 @@
           'rgba(75, 192, 192, 0.5)',
           'bar'
         );
-        const windSpeedChart = createChart(
+        windSpeedChart = createChart(
           'windSpeedChart',
           newWeatherData.map(item => item.wind_speed),
           newWeatherData.map(item => item.date),
@@ -605,7 +566,7 @@
           'rgba(255, 205, 86, 1)',
           'rgba(255, 205, 86, 0.2)'
         );
-        const gddChart = createChart(
+        gddChart = createChart(
           'gddChart',
           newWeatherData.map(item => item.gdd_accumulated),
           newWeatherData.map(item => item.date),
@@ -614,17 +575,26 @@
           'rgba(139, 69, 19, 1)',
           'rgba(139, 69, 19, 0.2)'
         );
+        soilMoistureChart = createChart(
+          'soilMoistureChart',
+          newWeatherData.map(item => item.soil_moisture),
+          newWeatherData.map(item => item.date),
+          'Soil Moisture Level',
+          'Moisture (m³/m³)',
+          'rgba(0, 123, 255, 1)',
+          'rgba(0, 123, 255, 0.2)'
+        );
       } catch (error) {
         console.error("Error updating weather for sector:", error);
         alert("Failed to update weather data for the selected location.");
       }
     }
-    
-    // Reset button handler: update weather data back to the account's original coordinates.
+
+    // Reset button handler: revert to account location weather data.
     document.getElementById('resetWeatherBtn').addEventListener('click', () => {
       updateWeatherForSector(accountLat, accountLng, 'Account');
     });
-    
+
     // File Upload Handling
     document.getElementById('imageInput').addEventListener('change', function() {
       const maxFiles = 5;
@@ -637,16 +607,13 @@
         ? `${this.files.length} files selected` 
         : 'Choose files';
     });
-    
+
     // Upload Form Submission
     document.getElementById('uploadForm').addEventListener('submit', async (e) => {
       e.preventDefault();
       const formData = new FormData(e.target);
       try {
-        const response = await fetch('/upload/image', {
-          method: 'POST',
-          body: formData
-        });
+        const response = await fetch('/upload/image', { method: 'POST', body: formData });
         if (!response.ok) throw new Error(await response.text());
         alert('Upload successful!');
         $('#uploadImageModal').modal('hide');
@@ -655,7 +622,7 @@
         alert(`Upload failed: ${error.message}`);
       }
     });
-    
+
     // Results Modal Handler
     async function loadResultsModal(sectorId) {
       const modal = $('#resultsModal');
@@ -672,10 +639,7 @@
         content.innerHTML = await response.text();
         modal.modal('show');
       } catch (error) {
-        content.innerHTML = `
-          <div class="alert alert-danger">
-            Failed to load results: ${error.message}
-          </div>`;
+        content.innerHTML = `<div class="alert alert-danger">Failed to load results: ${error.message}</div>`;
       }
     }
   </script>
