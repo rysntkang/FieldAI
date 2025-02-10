@@ -25,6 +25,38 @@ const getAllUsers = async () => {
   return rows;
 };
 
+const getFilteredUsers = async ({ search, sort, order, limit, offset }) => {
+  let query = 'SELECT user_id, email, username, role, latitude, longitude FROM users WHERE role != "Admin"';
+  const values = [];
+
+  if (search) {
+    query += ' AND username LIKE ?';
+    values.push(`%${search}%`);
+  }
+
+  const validSortFields = ['username', 'email'];
+  if (sort && validSortFields.includes(sort)) {
+    const sortOrder = (order && order.toUpperCase() === 'DESC') ? 'DESC' : 'ASC';
+    query += ` ORDER BY ${sort} ${sortOrder}`;
+  } else {
+    query += ' ORDER BY username ASC';
+  }
+
+  const limitNum = parseInt(limit, 10) || 50;
+  query += ` LIMIT ${limitNum}`;
+
+  if (offset !== undefined && offset !== null && offset !== '') {
+    const offsetNum = parseInt(offset, 10);
+    if (!isNaN(offsetNum)) {
+      query += ` OFFSET ${offsetNum}`;
+    }
+  }
+
+  const [rows] = await db.execute(query, values);
+  return rows;
+};
+
+
 const updateUser = async (userId, updates) => {
   const fields = [];
   const values = [];
@@ -62,6 +94,7 @@ module.exports = {
   findUserByUsername,
   createUser,
   getAllUsers,
+  getFilteredUsers,
   updateUser,
   deleteUser,
   getUserById

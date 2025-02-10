@@ -1,22 +1,29 @@
 const express = require('express');
-const {getAllUsers, addUser, updateUserSettings, deleteUserById} = require('../controllers/adminController');
+const { 
+  getFilteredUsers,
+  addUser, 
+  updateUserSettings, 
+  deleteUserById 
+} = require('../controllers/adminController');
 const { getAllUploadAttempts } = require('../controllers/imageController');  
 
 const router = express.Router();
 
 const ensureAuthenticated = (req, res, next) => {
-    if (req.session?.user) return next();
-    res.redirect('/login');
-  };
+  if (req.session?.user) return next();
+  res.redirect('/login');
+};
 
 router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
   try {
-    const users = await getAllUsers();
+    const { search = '', sort = 'username', order = 'asc', limit = 50, offset = 0 } = req.query;
+    const users = await getFilteredUsers({ search, sort, order, limit, offset });
     const uploadAttempts = await getAllUploadAttempts();
     res.render('pages/admin/dashboard', { 
       users,
       uploadAttempts,
-      activePage: 'dashboard'
+      activePage: 'dashboard',
+      query: req.query
     });
   } catch (error) {
     console.error('Error fetching data:', error);

@@ -3,10 +3,19 @@ const {
   findUserByUsername,
   createUser,
   getAllUsers: modelGetAllUsers,
+  getFilteredUsers: modelGetFilteredUsers, // new function from the model
   updateUser: modelUpdateUser,
   deleteUser: modelDeleteUser,
-  getUserById: modelGetUserById  // New function from the model
+  getUserById: modelGetUserById  
 } = require('../models/userModel');
+
+const getFilteredUsers = async (options) => {
+  try {
+    return await modelGetFilteredUsers(options);
+  } catch (error) {
+    throw error;
+  }
+};
 
 const getAllUsers = async () => {
   try {
@@ -59,4 +68,11 @@ const getUserById = async (userId) => {
     }
 };
 
-module.exports = { getAllUsers, addUser, updateUserSettings, deleteUserById, getUserById };
+module.exports = { 
+  getAllUsers, 
+  addUser, 
+  updateUserSettings, 
+  deleteUserById, 
+  getUserById, 
+  getFilteredUsers
+};
