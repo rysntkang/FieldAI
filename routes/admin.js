@@ -5,7 +5,7 @@ const {
   updateUserSettings, 
   deleteUserById 
 } = require('../controllers/adminController');
-const { getAllUploadAttempts } = require('../controllers/imageController');  
+const { getAllUploadAttempts, getFilteredUploadAttempts } = require('../controllers/imageController');  
 
 const router = express.Router();
 
@@ -16,9 +16,28 @@ const ensureAuthenticated = (req, res, next) => {
 
 router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
   try {
-    const { search = '', sort = 'username', order = 'asc', limit = 50, offset = 0 } = req.query;
+    const { 
+      search = '', 
+      sort = 'username', 
+      order = 'asc', 
+      limit = 50, 
+      offset = 0,
+      uploadSearch = '', 
+      uploadSort = 'upload_date', 
+      uploadOrder = 'desc', 
+      uploadLimit = 50, 
+      uploadOffset = 0
+    } = req.query;
+
     const users = await getFilteredUsers({ search, sort, order, limit, offset });
-    const uploadAttempts = await getAllUploadAttempts();
+    const uploadAttempts = await getFilteredUploadAttempts({
+      search: uploadSearch,
+      sort: uploadSort,
+      order: uploadOrder,
+      limit: uploadLimit,
+      offset: uploadOffset
+    });
+
     res.render('pages/admin/dashboard', { 
       users,
       uploadAttempts,
@@ -30,6 +49,7 @@ router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
     res.status(500).send('An error occurred while fetching data.');
   }
 });
+
 
 router.get('/admin/upload-attempts', ensureAuthenticated, async (req, res) => {
   try {

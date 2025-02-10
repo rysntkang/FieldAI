@@ -3,7 +3,8 @@ const {
   createUploadAttemptWithImages, 
   getUploadAttempts: modelGetUploadAttempts,
   getAllUploadAttempts: modelGetAllUploadAttempts,
-  getAttemptImages: modelGetAttemptImages
+  getAttemptImages: modelGetAttemptImages,
+  getFilteredUploadAttempts: modelGetFilteredUploadAttempts
 } = require('../models/imageModel');
 const { processImage } = require('../services/mlService');
 
@@ -107,8 +108,22 @@ const getAllUploadAttempts = async () => {
     }
 };
 
+const getFilteredUploadAttempts = async (options) => {
+  try {
+    const attempts = await modelGetFilteredUploadAttempts(options);
+    for (const attempt of attempts) {
+      attempt.images = await modelGetAttemptImages(attempt.upload_id);
+    }
+    return attempts;
+  } catch (error) {
+    console.error('Controller error fetching filtered attempts:', error);
+    throw error;
+  }
+};
+
 module.exports = { 
   handleImageUpload, 
   getUploadAttempts,
-  getAllUploadAttempts 
+  getAllUploadAttempts,
+  getFilteredUploadAttempts
 };

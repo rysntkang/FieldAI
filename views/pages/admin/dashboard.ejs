@@ -41,6 +41,7 @@
   <%- include('../../partials/admin/sidebar') %>
 
   <div class="content">
+    <!-- Users Table Section -->
     <h3>User List</h3>
     <form method="GET" action="/admin/dashboard" class="form-inline mb-3">
       <div class="form-group mr-2">
@@ -103,7 +104,36 @@
       </tbody>
     </table>
 
+    <!-- Upload Attempts Section -->
     <h3 class="mt-5">Upload Attempts</h3>
+    <!-- NEW: Upload Attempts Filtering Form -->
+    <form method="GET" action="/admin/dashboard" class="form-inline mb-3">
+      <!-- Preserve the users filtering parameters as hidden inputs -->
+      <input type="hidden" name="search" value="<%= query.search || '' %>">
+      <input type="hidden" name="sort" value="<%= query.sort || 'username' %>">
+      <input type="hidden" name="order" value="<%= query.order || 'asc' %>">
+      
+      <div class="form-group mr-2">
+        <label for="uploadSearch" class="mr-2">Search Uploader:</label>
+        <input type="text" name="uploadSearch" id="uploadSearch" class="form-control" value="<%= query.uploadSearch || '' %>">
+      </div>
+      <div class="form-group mr-2">
+        <label for="uploadSort" class="mr-2">Sort By:</label>
+        <select name="uploadSort" id="uploadSort" class="form-control">
+          <option value="upload_date" <%= (!query.uploadSort || query.uploadSort === 'upload_date') ? 'selected' : '' %>>Upload Date</option>
+          <option value="status" <%= query.uploadSort === 'status' ? 'selected' : '' %>>Status</option>
+        </select>
+      </div>
+      <div class="form-group mr-2">
+        <label for="uploadOrder" class="mr-2">Order:</label>
+        <select name="uploadOrder" id="uploadOrder" class="form-control">
+          <option value="asc" <%= (!query.uploadOrder || query.uploadOrder === 'asc') ? 'selected' : '' %>>Ascending</option>
+          <option value="desc" <%= query.uploadOrder === 'desc' ? 'selected' : '' %>>Descending</option>
+        </select>
+      </div>
+      <button type="submit" class="btn btn-primary">Apply</button>
+    </form>
+  
     <table class="table table-bordered" id="uploadsTable">
       <thead class="thead-dark">
         <tr>
@@ -121,37 +151,38 @@
         <% uploadAttempts.forEach(attempt => { 
           // Convert the string values to numbers.
           const total = Number(attempt.total_images);
-          const completed = Number(attempt.completed_images);%>
-       <tr>
-         <td><%= attempt.upload_id %></td>
-         <td><%= attempt.username %></td>
-         <td><%= attempt.sector_id %></td>
-         <td><%= new Date(attempt.upload_date).toLocaleString() %></td>
-         <td><%= total %></td>
-         <td><%= completed %></td>
-         <td>
-           <% if (total > 0 && completed === total) { %>
-             <span class="badge badge-success">Completed</span>
-           <% } else if (total > 0 && completed > 0) { %>
-             <span class="badge badge-warning">Partial</span>
-           <% } else { %>
-             <span class="badge badge-danger">Pending</span>
-           <% } %>
-         </td>
-         <td>
-           <button class="btn btn-sm btn-info btn-view-images" 
-                   data-upload-id="<%= attempt.upload_id %>" 
-                   data-toggle="modal" 
-                   data-target="#viewImagesModal">
-             View Images
-           </button>
-         </td>
-       </tr>
-      <% }); %>
+          const completed = Number(attempt.completed_images); %>
+          <tr>
+            <td><%= attempt.upload_id %></td>
+            <td><%= attempt.username %></td>
+            <td><%= attempt.sector_id %></td>
+            <td><%= new Date(attempt.upload_date).toLocaleString() %></td>
+            <td><%= total %></td>
+            <td><%= completed %></td>
+            <td>
+              <% if (total > 0 && completed === total) { %>
+                <span class="badge badge-success">Completed</span>
+              <% } else if (total > 0 && completed > 0) { %>
+                <span class="badge badge-warning">Partial</span>
+              <% } else { %>
+                <span class="badge badge-danger">Pending</span>
+              <% } %>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-info btn-view-images" 
+                      data-upload-id="<%= attempt.upload_id %>" 
+                      data-toggle="modal" 
+                      data-target="#viewImagesModal">
+                View Images
+              </button>
+            </td>
+          </tr>
+        <% }); %>
       </tbody>
     </table>
   </div>
 
+  <!-- Modals and Footer (unchanged) -->
   <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <form action="/admin/edit-user" method="POST" id="editUserForm">
