@@ -292,11 +292,28 @@
       });
     }
 
-    // Farming tips function
     function generateFarmingTips(data) {
-      const today = data[0];
+      // Get today's date in YYYY-MM-DD format.
+      const todayDate = new Date().toISOString().split("T")[0];
+      // Try to find today's forecast entry.
+      let today = data.find(item => item.date === todayDate);
+      // If today's data isn't found, fall back to the first available entry.
+      if (!today) {
+        today = data[0];
+      }
+      
+      // Ensure we work with numbers.
+      const gddAccumulated = Number(today.gdd_accumulated) || 0;
+      const soilMoisture   = Number(today.soil_moisture)   || 0;
+      const precipitation  = Number(today.precipitation)   || 0;
+      const windSpeed      = Number(today.wind_speed)      || 0;
+      const tempMin        = Number(today.temp_min)        || 0;
+      const tempMax        = Number(today.temp_max)        || 0;
+      
       const tips = [];
-      if (today.gdd_accumulated > 100) {
+      
+      // --- GDD (Growing Degree Days) Tip ---
+      if (gddAccumulated > 100) {
         tips.push({
           emoji: '✔️',
           text: 'Good time for planting!',
@@ -311,7 +328,9 @@
           explanation: 'The current GDD is low, indicating that the heat accumulation is not yet ideal for planting.'
         });
       }
-      if (today.soil_moisture < 0.3) {
+      
+      // --- Soil Moisture Tip ---
+      if (soilMoisture < 0.3) {
         tips.push({
           emoji: '🚰',
           text: 'Irrigation needed – soil moisture is low.',
@@ -323,35 +342,88 @@
           emoji: '💧',
           text: 'Soil moisture is good.',
           type: 'success',
-          explanation: 'The soil moisture level is within a healthy range for corn growth.'
+          explanation: 'The soil moisture level is within a healthy range for crop growth.'
         });
       }
-      if (today.precipitation > 5) {
+      
+      // --- Precipitation Tip ---
+      if (precipitation > 5) {
         tips.push({
           emoji: '☔',
           text: 'Heavy rain expected – ensure proper drainage.',
           type: 'info',
           explanation: 'High precipitation may lead to waterlogging; consider checking your drainage systems.'
         });
+      } else if (precipitation < 1) {
+        tips.push({
+          emoji: '🌵',
+          text: 'Low precipitation – consider supplemental irrigation.',
+          type: 'warning',
+          explanation: 'Very little rain is expected, which may stress your crops without additional watering.'
+        });
+      } else {
+        tips.push({
+          emoji: '🌤️',
+          text: 'Precipitation levels are optimal for growth.',
+          type: 'success',
+          explanation: 'The forecasted precipitation is in an ideal range for crop development.'
+        });
       }
-      if (today.wind_speed > 15) {
+      
+      // --- Wind Speed Tip ---
+      if (windSpeed > 15) {
         tips.push({
           emoji: '💨',
           text: 'High winds detected – consider windbreaks.',
           type: 'warning',
           explanation: 'Strong winds can damage young plants. It might be wise to set up windbreaks.'
         });
+      } else if (windSpeed < 3) {
+        tips.push({
+          emoji: '🍃',
+          text: 'Very calm winds – ensure adequate ventilation.',
+          type: 'info',
+          explanation: 'While calm winds are generally good, extremely low movement can reduce natural air circulation. Monitor for potential issues like fungal growth.'
+        });
+      } else {
+        tips.push({
+          emoji: '🍃',
+          text: 'Wind conditions are favorable.',
+          type: 'success',
+          explanation: 'Moderate winds provide good air circulation without risking damage to your crops.'
+        });
       }
-      if (today.temp_min < 10) {
+      
+      // --- Temperature Tip (Frost Risk) ---
+      if (tempMin < 10) {
         tips.push({
           emoji: '❄️',
           text: 'Low temperatures expected – protect young plants from frost.',
           type: 'warning',
           explanation: 'The forecasted minimum temperature is low, increasing the risk of frost damage for sensitive crops.'
         });
+      } else {
+        tips.push({
+          emoji: '☀️',
+          text: 'Temperature conditions are safe – low frost risk.',
+          type: 'success',
+          explanation: 'The forecasted minimum temperature is within a safe range, minimizing frost concerns.'
+        });
       }
+      
+      // --- Extra Temperature Tip (High Temperature) ---
+      if (tempMax > 35) {
+        tips.push({
+          emoji: '🔥',
+          text: 'High temperatures expected – consider shade and extra irrigation.',
+          type: 'warning',
+          explanation: 'Very high maximum temperatures can stress plants and reduce yield. Consider using shade nets and increasing irrigation.'
+        });
+      }
+      
       return tips;
     }
+
 
     document.addEventListener('DOMContentLoaded', () => {
       const weatherData = <%- JSON.stringify(weatherData) %>;

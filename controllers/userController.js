@@ -3,37 +3,42 @@ const bcryptjs = require('bcryptjs');
 const { findUserByEmail, findUserByUsername, updateUser } = require('../models/userModel');
 const { getSectorsByUserId } = require('../models/sectorModel');
 
-// Updated function: renamed to getWeatherData and accepts a request object for default coordinates.
 const getWeatherData = async (req) => {
-    const { latitude, longitude } = req.session.user;
-    const weatherApiUrl = 'https://api.open-meteo.com/v1/forecast';
-    const params = {
-        latitude,
-        longitude,
-        daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
-        hourly: 'soil_moisture_0_1cm',
-        timezone: 'auto',
+  // Use req.query if available; otherwise, use an empty object.
+  const query = req.query || {};
+  
+  // If query parameters are provided, use them; otherwise, fall back to session values.
+  const latitude = query.lat ? parseFloat(query.lat) : req.session.user.latitude;
+  const longitude = query.lng ? parseFloat(query.lng) : req.session.user.longitude;
+  
+  const weatherApiUrl = 'https://api.open-meteo.com/v1/forecast';
+  const params = {
+    latitude,
+    longitude,
+    daily: 'temperature_2m_max,temperature_2m_min,precipitation_sum,wind_speed_10m_max',
+    hourly: 'soil_moisture_0_1cm',
+    timezone: 'auto',
+  };
+
+  const response = await axios.get(weatherApiUrl, { params });
+
+  let gdd_accumulated = 0;
+  const dailyData = response.data.daily.time.map((date, index) => {
+    const temp_max = response.data.daily.temperature_2m_max[index];
+    const temp_min = response.data.daily.temperature_2m_min[index];
+    const gdd = Math.max((temp_max + temp_min) / 2 - 10, 0); // Base temp 10°C for corn
+    gdd_accumulated += gdd;
+    return {
+      date,
+      temp_max,
+      temp_min,
+      precipitation: response.data.daily.precipitation_sum[index],
+      wind_speed: response.data.daily.wind_speed_10m_max[index],
+      gdd_accumulated,
+      soil_moisture: response.data.hourly.soil_moisture_0_1cm[index * 24] // daily sample
     };
-
-    const response = await axios.get(weatherApiUrl, { params });
-
-    let gdd_accumulated = 0;
-    const dailyData = response.data.daily.time.map((date, index) => {
-        const temp_max = response.data.daily.temperature_2m_max[index];
-        const temp_min = response.data.daily.temperature_2m_min[index];
-        const gdd = Math.max((temp_max + temp_min) / 2 - 10, 0); // Base temp 10°C for corn
-        gdd_accumulated += gdd;
-        return {
-        date,
-        temp_max,
-        temp_min,
-        precipitation: response.data.daily.precipitation_sum[index],
-        wind_speed: response.data.daily.wind_speed_10m_max[index],
-        gdd_accumulated,
-        soil_moisture: response.data.hourly.soil_moisture_0_1cm[index * 24] // daily sample
-        };
-    });
-    return dailyData;
+  });
+  return dailyData;
 };
 
 const getDashboardData = async (req) => {

@@ -84,17 +84,13 @@ router.post('/user/settings', ensureAuthenticated, updateUserSettings);
 
 router.get('/user/weather', ensureAuthenticated, async (req, res) => {
   try {
-    const { lat, lng } = req.query;
-    if (!lat || !lng) {
-      return res.status(400).json({ error: 'Missing latitude or longitude' });
-    }
-    
-    const weatherData = await getWeatherData({ session: { user: { latitude: parseFloat(lat), longitude: parseFloat(lng) } } });
+    const weatherData = await getWeatherData(req);
     res.json(weatherData);
   } catch (error) {
     console.error('Error fetching weather data:', error);
     res.status(500).json({ error: 'Error fetching weather data' });
   }
 });
+
 
 module.exports = router;
