@@ -37,8 +37,20 @@
   <%- include('../partials/header') %>
   
   <div class="container">
+
+    
     <div class="register-container">
       <h2>Register</h2>
+
+      <% if (error) { %>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+          <%= error %>
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+      <% } %>
+
       <form action="/register" method="POST">
         <div class="form-group">
           <label for="email">Email:</label>
@@ -114,6 +126,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', initMap);
+
+    $(document).ready(function() {
+      setTimeout(function() {
+        $(".alert").alert('close');
+      }, 10000);
+    });
   </script>
 
 </body>
