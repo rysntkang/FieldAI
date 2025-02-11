@@ -41,7 +41,24 @@
   <%- include('../../partials/admin/sidebar') %>
 
   <div class="content">
-    <!-- Users Table Section -->
+
+    <% if (success) { %>
+      <div id="success-alert" class="alert alert-success alert-dismissible fade show" role="alert">
+        <%= success %>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <div id="error-alert" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <%= error %>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    <% } %>
+
     <h3>User List</h3>
     <form method="GET" action="/admin/dashboard" class="form-inline mb-3">
       <div class="form-group mr-2">
@@ -182,7 +199,6 @@
     </table>
   </div>
 
-  <!-- Modals and Footer (unchanged) -->
   <div class="modal fade" id="editUserModal" tabindex="-1" role="dialog" aria-labelledby="editUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
       <form action="/admin/edit-user" method="POST" id="editUserForm">

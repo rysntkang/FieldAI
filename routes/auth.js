@@ -24,10 +24,10 @@ router.get('/logout', (req, res) => {
         return res.status(500).send('Could not log out. Please try again.');
       }
       res.clearCookie('connect.sid');
-      res.redirect('/login');
+      res.redirect('/login?success=' + encodeURIComponent('You have logged out successfully.'));
     });
   } else {
-    res.redirect('/login');
+    res.redirect('/login?success=' + encodeURIComponent('You have logged out successfully.'));
   }
 });
 
