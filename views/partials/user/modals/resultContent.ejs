@@ -37,15 +37,14 @@
               <% attempt.images.forEach(image => { %>
                 <div class="col-md-4 mb-3">
                   <div class="card h-100">
-                    <% if (process.env.INSTANCE_UNIX_SOCKET) { 
-                         // Properly require the module by wrapping the path in quotes.
-                         const getSignedUrl = require('../middleware/gcsimage');
-                         // Use image.file_path to generate the signed URL.
-                         let url = getSignedUrl(image.file_path); %>
-                      <img src="<%= url %>" class="card-img-top" style="max-height: 200px; object-fit: cover;">
-                    <% } else { %>
-                      <img src="<%= image.file_path %>" class="card-img-top" style="max-height: 200px; object-fit: cover;">
-                    <% } %>
+                    <% if (process.env.INSTANCE_UNIX_SOCKET){
+                      const getSignedUrl = require('/middleware/gcsimage');
+                      let url; 
+                      url = getSignedUrl(file_path); %>
+                      <img src="<%= image.url %>" class="card-img-top" style="max-height: 200px; object-fit: cover;">
+                    <% } else{%>
+                    <img src="<%= image.file_path %>" class="card-img-top" style="max-height: 200px; object-fit: cover;">
+                    <%} %>
                     <div class="card-body d-flex flex-column">
                       <% if (image.status === 'completed') { %>
                         <div class="mt-auto">
