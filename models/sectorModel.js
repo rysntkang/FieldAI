@@ -42,8 +42,31 @@ const addSector = async (userId, name, latitude, longitude) => {
   }
 };
 
+// NEW: Update sector function
+const updateSector = async (sectorId, userId, name, latitude, longitude) => {
+  try {
+    // Check if another sector (other than the one being updated) already has this name
+    const [rows] = await db.execute(
+      'SELECT sector_id FROM sectors WHERE user_id = ? AND name = ? AND sector_id != ?',
+      [userId, name, sectorId]
+    );
+    if (rows.length > 0) {
+      throw new Error('Sector name already exists');
+    }
+    const [result] = await db.execute(
+      'UPDATE sectors SET name = ?, latitude = ?, longitude = ? WHERE sector_id = ? AND user_id = ?',
+      [name, latitude, longitude, sectorId, userId]
+    );
+    return result;
+  } catch (error) {
+    console.error('Error updating sector:', error);
+    throw error;
+  }
+};
+
 module.exports = { 
   getSectorsByUserId, 
   addSector,
-  checkSectorNameExists
+  checkSectorNameExists,
+  updateSector
 };

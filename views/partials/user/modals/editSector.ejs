@@ -1,0 +1,31 @@
+<div class="modal fade" id="editSectorModal" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Edit Sector</h5>
+        <button type="button" class="close" data-dismiss="modal">
+          <span>&times;</span>
+        </button>
+      </div>
+      <form id="editSectorForm" action="/user/editSector" method="POST">
+        <div class="modal-body">
+          <input type="hidden" id="editSectorId" name="sectorId">
+          <div class="form-group">
+            <label for="editSectorName">Sector Name</label>
+            <input type="text" id="editSectorName" name="sectorName" class="form-control" required>
+          </div>
+          <div class="form-group">
+            <label>Select Location</label>
+            <div id="editMap" style="height: 300px;"></div>
+          </div>
+          <input type="hidden" id="editLatitude" name="latitude">
+          <input type="hidden" id="editLongitude" name="longitude">
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="submit" class="btn btn-primary">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>

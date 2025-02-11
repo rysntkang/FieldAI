@@ -1,6 +1,6 @@
 const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
-const { createSector } = require('../controllers/sectorController');
+const { createSector, editSector } = require('../controllers/sectorController');
 const { handleImageUpload, getUploadAttempts } = require('../controllers/imageController');
 const { getDashboardData, updateUserSettings, getWeatherData } = require('../controllers/userController');
 
@@ -18,7 +18,9 @@ router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
       user: req.session.user,
       weatherData,
       sectors,
-      activePage: 'dashboard'
+      activePage: 'dashboard',
+      successMessage: req.query.success,
+      errorMessage: req.query.error
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -61,6 +63,8 @@ router.post('/user/addSector', ensureAuthenticated, (req, res) => {
   createSector(req, res);
 });
 
+router.post('/user/editSector', ensureAuthenticated, editSector);
+
 router.get('/upload', ensureAuthenticated, (req, res) => {
   try {
     const sectorId = req.query.sectorId;
@@ -91,6 +95,5 @@ router.get('/user/weather', ensureAuthenticated, async (req, res) => {
     res.status(500).json({ error: 'Error fetching weather data' });
   }
 });
-
 
 module.exports = router;
