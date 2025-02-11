@@ -67,7 +67,7 @@ const getUploadAttempts = async (sectorId) => {
 const getAttemptImages = async (uploadId) => {
   try {
     const [images] = await db.execute(`
-      SELECT i.*, r.corn_count, r.processed_date, r.status
+      SELECT i.*, r.corn_count, r.processed_date, r.processing_time, r.status
       FROM images i
       LEFT JOIN results r ON i.image_id = r.image_id
       WHERE i.upload_id = ?
@@ -171,11 +171,53 @@ const getFilteredUploadAttempts = async ({
   return rows;
 };
 
+const deleteUploadAttempt = async (uploadId) => {
+  const connection = await db.getConnection();
+  try {
+    await connection.beginTransaction();
+
+    // Get all image IDs for this upload attempt.
+    const [imageRows] = await connection.execute(
+      'SELECT image_id FROM images WHERE upload_id = ?',
+      [uploadId]
+    );
+    const imageIds = imageRows.map(row => row.image_id);
+
+    // Delete corresponding rows from the results table (if any images exist)
+    if (imageIds.length > 0) {
+      await connection.query(
+        'DELETE FROM results WHERE image_id IN (?)',
+        [imageIds]
+      );
+    }
+
+    // Delete the images for this upload attempt
+    await connection.query(
+      'DELETE FROM images WHERE upload_id = ?',
+      [uploadId]
+    );
+
+    // Delete the upload attempt record
+    await connection.query(
+      'DELETE FROM upload_attempts WHERE upload_id = ?',
+      [uploadId]
+    );
+
+    await connection.commit();
+    return true;
+  } catch (error) {
+    await connection.rollback();
+    throw error;
+  } finally {
+    connection.release();
+  }
+};
 
 module.exports = { 
   createUploadAttemptWithImages, 
   getUploadAttempts, 
   getAttemptImages,
   getAllUploadAttempts,
-  getFilteredUploadAttempts
+  getFilteredUploadAttempts,
+  deleteUploadAttempt
 };

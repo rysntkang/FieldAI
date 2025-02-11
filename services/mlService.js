@@ -5,7 +5,6 @@ const axios = require('axios');
 
 const processImage = async (imageId, imagePath) => {
   try {
-    // Mark image as processing in the DB
     await db.execute(
       'UPDATE results SET status = "processing", processed_date = NOW() WHERE image_id = ?',
       [imageId]
@@ -16,7 +15,6 @@ const processImage = async (imageId, imagePath) => {
     let cornCount;
     let prediction;
 
-    // Cloud / App Engine environment
     if (process.env.INSTANCE_UNIX_SOCKET) {
       console.log(`mlservice ${imagePath}`);
       const { Storage } = require('@google-cloud/storage');
@@ -29,7 +27,7 @@ const processImage = async (imageId, imagePath) => {
       const client = new PredictionServiceClient(clientOptions);
       const endpoint = process.env.VERTEX_ENDPOINT;
       const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
-      // Download file from Cloud Storage and resize
+
       let file;
       [file] = await storage.bucket(bucketName).file(imagePath).download();
       file = await sharp(file).resize(640, 640).toBuffer();
@@ -52,24 +50,29 @@ const processImage = async (imageId, imagePath) => {
     } 
     // Local environment
     else {
-      // Read the image from disk and resize to 640x640
+      console.log(`Processing local image from: ${imagePath}`);
+
+      try {
+        await fs.access(imagePath);
+      } catch (accessErr) {
+        throw new Error(`File not found at path: ${imagePath}`);
+      }
+
       const imageBuffer = await fs.readFile(imagePath);
       const resizedBuffer = await sharp(imageBuffer).resize(640, 640).toBuffer();
       const base64Image = resizedBuffer.toString('base64');
-      
-      // Send the resized image to the local ML service.
-      // Adjust the payload key as needed if your ML service expects a different structure.
+
       response = await axios.post('http://127.0.0.1:5000/predict', {
         instances: [{ images: base64Image }]
       });
       
-      // Parse prediction
+      // Parse prediction (assuming the returned string is in the format "something:<cornCount>")
       prediction = response.data.predictions[0];
-      cornCount = parseInt(prediction.split(':')[1]);
+      cornCount = parseInt(prediction.split(':')[1], 10);
     }
     
     const processingTime = Date.now() - startTime;
-    console.log(cornCount, processingTime, imageId);
+    console.log(`Image ID: ${imageId} processed in ${processingTime} ms with corn count: ${cornCount}`);
 
     // Update the results table with the completed status
     await db.execute(
@@ -87,12 +90,11 @@ const processImage = async (imageId, imagePath) => {
     );
     
   } catch (error) {
-    // Update the DB with the error message if processing fails
     await db.execute(
       'UPDATE results SET status = "failed", error_message = ?, processed_date = NOW() WHERE image_id = ?',
       [error.message.substring(0, 255), imageId]
     );
-    console.error(`Mock processing failed for image ${imageId}:`, error);
+    console.error(`Processing failed for image ${imageId}:`, error);
   }
 };
 

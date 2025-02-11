@@ -4,7 +4,8 @@ const {
   getUploadAttempts: modelGetUploadAttempts,
   getAllUploadAttempts: modelGetAllUploadAttempts,
   getAttemptImages: modelGetAttemptImages,
-  getFilteredUploadAttempts: modelGetFilteredUploadAttempts
+  getFilteredUploadAttempts: modelGetFilteredUploadAttempts,
+  deleteUploadAttempt
 } = require('../models/imageModel');
 const { processImage } = require('../services/mlService');
 
@@ -132,9 +133,25 @@ const getFilteredUploadAttempts = async (options) => {
   }
 };
 
+const deleteUploadAttemptController = async (req, res) => {
+  try {
+    const { uploadId } = req.params;
+    await deleteUploadAttempt(uploadId);
+    return res.redirect(
+      '/user/dashboard?success=' + encodeURIComponent('Upload attempt deleted successfully')
+    );
+  } catch (error) {
+    console.error("Error deleting upload attempt:", error);
+    return res.redirect(
+      '/user/dashboard?error=' + encodeURIComponent('Failed to delete upload attempt')
+    );
+  }
+};
+
 module.exports = { 
   handleImageUpload, 
   getUploadAttempts,
   getAllUploadAttempts,
-  getFilteredUploadAttempts
+  getFilteredUploadAttempts,
+  deleteUploadAttemptController
 };

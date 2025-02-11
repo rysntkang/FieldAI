@@ -1,7 +1,7 @@
 const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
 const { createSector, editSector, deleteSector } = require('../controllers/sectorController');
-const { handleImageUpload, getUploadAttempts } = require('../controllers/imageController');
+const { handleImageUpload, getUploadAttempts, deleteUploadAttemptController } = require('../controllers/imageController');
 const { getDashboardData, updateUserSettings, getWeatherData } = require('../controllers/userController');
 
 const router = express.Router();
@@ -33,6 +33,8 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
   try {
     const sectorId = req.params.sectorId;
     const attempts = await getUploadAttempts(sectorId);
+
+    console.log(attempts);
 
     if (process.env.INSTANCE_UNIX_SOCKET){
       const getSignedUrl = require('../middleware/gcsimage');
@@ -98,6 +100,8 @@ router.get('/upload', ensureAuthenticated, (req, res) => {
     }
   }
 });
+
+router.delete('/upload-attempt/:uploadId', ensureAuthenticated, deleteUploadAttemptController);
 
 router.post('/upload/image', 
   ensureAuthenticated, 

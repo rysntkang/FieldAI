@@ -13,9 +13,9 @@ const fileFilter = (req, file, cb) => {
 let storage;
 if (process.env.INSTANCE_UNIX_SOCKET === 'true') {
   storage = multer.memoryStorage();
-}
-else{
-  const storage = multer.diskStorage({
+} else {
+  // Assign to the already-declared "storage" variable
+  storage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, path.join(__dirname, '../public/uploads'));
     },
