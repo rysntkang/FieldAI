@@ -1,39 +1,78 @@
-const bcryptjs = require('bcryptjs');
-const { findUserByEmail, findUserByUsername, createUser } = require('../models/userModel');
+const {
+  findUserByEmail,
+  findUserByUsername,
+  createUser,
+  getAllUsers: modelGetAllUsers,
+  getFilteredUsers: modelGetFilteredUsers, // new function from the model
+  updateUser: modelUpdateUser,
+  deleteUser: modelDeleteUser,
+  getUserById: modelGetUserById  
+} = require('../models/userModel');
 
-const registerUser = async (req, res) => {
-    const { email, username, password, confirmPassword, latitude, longitude } = req.body;
+const getFilteredUsers = async (options) => {
+  try {
+    return await modelGetFilteredUsers(options);
+  } catch (error) {
+    throw error;
+  }
+};
 
-    if (!email || !username || !password || !confirmPassword || !latitude || !longitude) {
-        return res.status(400).send('All fields are required.');
-    }
+const getAllUsers = async () => {
+  try {
+    return await modelGetAllUsers();
+  } catch (error) {
+    throw error;
+  }
+};
 
-    if (password !== confirmPassword) {
-        return res.status(400).send('Passwords do not match.');
-    }
+const addUser = async (username, email, password, latitude, longitude) => {
+  if (!username || !email || !password || !latitude || !longitude) {
+    throw new Error('All fields are required.');
+  }
+  try {
+    const existingEmail = await findUserByEmail(email);
+    if (existingEmail) throw new Error('Email already in use.');
 
+    const existingUsername = await findUserByUsername(username);
+    if (existingUsername) throw new Error('Username already taken.');
+
+    const hashedPassword = await require('bcryptjs').hash(password, 10);
+    const success = await createUser(email, username, hashedPassword, 'User', latitude, longitude);
+    return success;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const updateUserSettings = async (userId, updates) => {
+  try {
+    return await modelUpdateUser(userId, updates);
+  } catch (error) {
+    throw error;
+  }
+};
+
+const deleteUserById = async (userId) => {
+  try {
+    return await modelDeleteUser(userId);
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getUserById = async (userId) => {
     try {
-        const existingEmail = await findUserByEmail(email);
-        const existingUsername = await findUserByUsername(username);
-        if (existingEmail) {
-            return res.status(400).send('Email is already in use.');
-        }
-        if (existingUsername) {
-            return res.status(400).send('Username is already taken.');
-        }
-
-        const hashedPassword = await bcryptjs.hash(password, 10);
-
-        const result = await createUser(email, username, hashedPassword, "Admin", latitude, longitude)
-        if (result) {
-            res.redirect('/admin/dashboard');
-        } else {
-            res.status(500).send('Error creating user.');
-        }
+        return await modelGetUserById(userId);
     } catch (error) {
-        console.error(error);
-        res.status(500).send('Internal Server Error');
+        throw error;
     }
 };
 
-module.exports = { registerUser };
+module.exports = { 
+  getAllUsers, 
+  addUser, 
+  updateUserSettings, 
+  deleteUserById, 
+  getUserById, 
+  getFilteredUsers
+};

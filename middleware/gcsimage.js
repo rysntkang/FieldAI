@@ -13,5 +13,6 @@ async function getSignedUrl(fileName) {
     .file(fileName)
     .getSignedUrl(options);
   console.log('Signed URL:', url);
+  return url;
 }
 module.exports = getSignedUrl;

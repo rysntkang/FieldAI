@@ -1,0 +1,21 @@
+<form id="uploadForm" enctype="multipart/form-data">
+  <input type="hidden" id="uploadSectorId" name="sectorId">
+  <div class="form-group">
+    <label>Select Images (max 10)</label>
+    <div class="custom-file">
+      <input 
+        type="file" 
+        name="images"
+        class="custom-file-input" 
+        id="imageInput" 
+        multiple
+        accept="image/*"
+      >
+      <label class="custom-file-label" for="imageInput">Choose files</label>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+    <button type="submit" class="btn btn-primary">Upload Images</button>
+  </div>
+</form>

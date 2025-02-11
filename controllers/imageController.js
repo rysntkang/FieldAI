@@ -2,13 +2,12 @@ const path = require('path');
 const { 
   createUploadAttemptWithImages, 
   getUploadAttempts: modelGetUploadAttempts,
-  getAttemptImages: modelGetAttemptImages 
+  getAllUploadAttempts: modelGetAllUploadAttempts,
+  getAttemptImages: modelGetAttemptImages,
+  getFilteredUploadAttempts: modelGetFilteredUploadAttempts
 } = require('../models/imageModel');
 const { processImage } = require('../services/mlService');
 
-//
-// If using GCS mode, we need a helper to upload files to GCS:
-//
 let uploadToGCS;
 if (process.env.INSTANCE_UNIX_SOCKET) {
   const { Storage } = require('@google-cloud/storage');
@@ -63,6 +62,7 @@ const handleImageUpload = async (req, res) => {
       }));
     }
 
+
     // Create a DB record for this upload attempt.
     const { uploadId, imageIds } = await createUploadAttemptWithImages(sectorId, filesInfo);
 
@@ -82,7 +82,6 @@ const handleImageUpload = async (req, res) => {
         );
       }
     });
-
     res.json({ 
       success: true,
       message: `${filesInfo.length} images uploaded successfully`,
@@ -94,20 +93,48 @@ const handleImageUpload = async (req, res) => {
   }
 };
 
-
 const getUploadAttempts = async (sectorId) => {
   try {
-      const attempts = await modelGetUploadAttempts(sectorId);
-      
-      for (const attempt of attempts) {
-          attempt.images = await modelGetAttemptImages(attempt.upload_id);
-      }
-      
-      return attempts;
+    const attempts = await modelGetUploadAttempts(sectorId);
+    for (const attempt of attempts) {
+      attempt.images = await modelGetAttemptImages(attempt.upload_id);
+    }
+    return attempts;
   } catch (error) {
-      console.error('Controller error fetching attempts:', error);
-      throw error;
+    console.error('Controller error fetching attempts:', error);
+    throw error;
   }
 };
 
-module.exports = { handleImageUpload, getUploadAttempts };
+const getAllUploadAttempts = async () => {
+  try {
+    const attempts = await modelGetAllUploadAttempts();
+    for (const attempt of attempts) {
+      attempt.images = await modelGetAttemptImages(attempt.upload_id);
+    }
+    return attempts;
+    } catch (error) {
+      console.error('Controller error fetching all attempts:', error);
+      throw error;
+    }
+};
+
+const getFilteredUploadAttempts = async (options) => {
+  try {
+    const attempts = await modelGetFilteredUploadAttempts(options);
+    for (const attempt of attempts) {
+      attempt.images = await modelGetAttemptImages(attempt.upload_id);
+    }
+    return attempts;
+  } catch (error) {
+    console.error('Controller error fetching filtered attempts:', error);
+    throw error;
+  }
+};
+
+module.exports = { 
+  handleImageUpload, 
+  getUploadAttempts,
+  getAllUploadAttempts,
+  getFilteredUploadAttempts
+};

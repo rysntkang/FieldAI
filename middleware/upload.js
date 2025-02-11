@@ -28,12 +28,12 @@ else{
 }
 
 const upload = multer({
-    storage,
-    fileFilter,
-    limits: {
-      fileSize: 10 * 1024 * 1024,
-      files: 10
-    }
+  storage,
+  fileFilter,
+  limits: {
+    fileSize: 10 * 1024 * 1024,
+    files: 10
+  }
 });
 
 const handleUploadErrors = (err, req, res, next) => {

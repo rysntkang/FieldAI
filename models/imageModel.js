@@ -79,8 +79,103 @@ const getAttemptImages = async (uploadId) => {
   }
 };
 
+const getAllUploadAttempts = async () => {
+  try {
+    const [attempts] = await db.execute(`
+      SELECT 
+        ua.upload_id,
+        ua.upload_date,
+        u.username,  -- Retrieve username from the users table
+        ua.sector_id,
+        COUNT(i.image_id) AS total_images,
+        SUM(CASE WHEN r.status = 'completed' THEN 1 ELSE 0 END) AS completed_images
+      FROM upload_attempts ua
+      LEFT JOIN sectors s ON ua.sector_id = s.sector_id
+      LEFT JOIN users u ON s.user_id = u.user_id  -- Join with users to get the username
+      LEFT JOIN images i ON ua.upload_id = i.upload_id
+      LEFT JOIN results r ON i.image_id = r.image_id
+      GROUP BY ua.upload_id
+      ORDER BY ua.upload_date DESC
+    `);
+    return attempts;
+  } catch (error) {
+    console.error('Error fetching upload attempts:', error);
+    throw error;
+  }
+};
+
+const getFilteredUploadAttempts = async ({ 
+  search = '', 
+  sort = 'upload_date', 
+  order = 'desc', 
+  limit, 
+  offset 
+}) => {
+  let query = `
+    SELECT 
+      ua.upload_id,
+      ua.upload_date,
+      u.username,
+      ua.sector_id,
+      COUNT(i.image_id) AS total_images,
+      SUM(CASE WHEN r.status = 'completed' THEN 1 ELSE 0 END) AS completed_images,
+      CASE 
+        WHEN COUNT(i.image_id) > 0 
+             AND SUM(CASE WHEN r.status = 'completed' THEN 1 ELSE 0 END) = COUNT(i.image_id) 
+          THEN 'Completed'
+        WHEN COUNT(i.image_id) > 0 
+             AND SUM(CASE WHEN r.status = 'completed' THEN 1 ELSE 0 END) > 0 
+          THEN 'Partial'
+        ELSE 'Pending'
+      END AS status
+    FROM upload_attempts ua
+    LEFT JOIN sectors s ON ua.sector_id = s.sector_id
+    LEFT JOIN users u ON s.user_id = u.user_id
+    LEFT JOIN images i ON ua.upload_id = i.upload_id
+    LEFT JOIN results r ON i.image_id = r.image_id
+    WHERE 1=1
+  `;
+  const values = [];
+
+  if (search) {
+    query += ' AND u.username LIKE ?';
+    values.push(`%${search}%`);
+  }
+
+  query += ' GROUP BY ua.upload_id ';
+
+  const sortOrder = (order && order.toUpperCase() === 'DESC') ? 'DESC' : 'ASC';
+
+  if (sort === 'status') {
+    if (sortOrder === 'ASC') {
+      query += " ORDER BY FIELD(status, 'Completed', 'Partial', 'Pending')";
+    } else {
+      query += " ORDER BY FIELD(status, 'Pending', 'Partial', 'Completed')";
+    }
+  } else if (sort === 'upload_date') {
+    query += ` ORDER BY ua.upload_date ${sortOrder}`;
+  } else {
+    query += ` ORDER BY ua.upload_date DESC`;
+  }
+
+  const limitNum = parseInt(limit, 10) || 50;
+  query += ` LIMIT ${limitNum}`;
+  if (offset !== undefined && offset !== null && offset !== '') {
+    const offsetNum = parseInt(offset, 10);
+    if (!isNaN(offsetNum)) {
+      query += ` OFFSET ${offsetNum}`;
+    }
+  }
+
+  const [rows] = await db.execute(query, values);
+  return rows;
+};
+
+
 module.exports = { 
   createUploadAttemptWithImages, 
   getUploadAttempts, 
-  getAttemptImages 
+  getAttemptImages,
+  getAllUploadAttempts,
+  getFilteredUploadAttempts
 };
