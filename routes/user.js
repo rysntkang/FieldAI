@@ -1,6 +1,6 @@
 const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
-const { createSector, editSector } = require('../controllers/sectorController');
+const { createSector, editSector, deleteSector } = require('../controllers/sectorController');
 const { handleImageUpload, getUploadAttempts } = require('../controllers/imageController');
 const { getDashboardData, updateUserSettings, getWeatherData } = require('../controllers/userController');
 
@@ -64,6 +64,15 @@ router.post('/user/addSector', ensureAuthenticated, (req, res) => {
 });
 
 router.post('/user/editSector', ensureAuthenticated, editSector);
+
+router.delete('/user/deleteSector/:sectorId', ensureAuthenticated, async (req, res) => {
+  try {
+    await deleteSector(req, res);
+  } catch (error) {
+    console.error('Delete sector error:', error);
+    res.status(500).json({ message: 'Error deleting sector.' });
+  }
+});
 
 router.get('/upload', ensureAuthenticated, (req, res) => {
   try {
