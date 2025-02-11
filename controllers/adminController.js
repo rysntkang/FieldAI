@@ -45,13 +45,6 @@ const addUser = async (req, res) => {
     );
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
-    return res.redirect(
-      '/admin/add-user?error=' + encodeURIComponent('Invalid email format.')
-    );
-  }
-
   if (password.length < 6) {
     return res.redirect(
       '/admin/add-user?error=' + encodeURIComponent('Password must be at least 6 characters long.')
@@ -141,7 +134,7 @@ const updateUserSettings = async (req, res) => {
         '/admin/dashboard?error=' + encodeURIComponent('Email is already in use.')
       );
     }
-    
+
     const success = await updateUser(user_id, { username, email, latitude: lat, longitude: lon });
     if (success) {
       res.redirect('/admin/dashboard?success=' + encodeURIComponent('User updated successfully.'));
