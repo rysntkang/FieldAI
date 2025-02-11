@@ -42,8 +42,60 @@ const addSector = async (userId, name, latitude, longitude) => {
   }
 };
 
+const updateSector = async (sectorId, userId, name, latitude, longitude) => {
+  try {
+    const [rows] = await db.execute(
+      'SELECT sector_id FROM sectors WHERE user_id = ? AND name = ? AND sector_id != ?',
+      [userId, name, sectorId]
+    );
+    if (rows.length > 0) {
+      throw new Error('Sector name already exists');
+    }
+    const [result] = await db.execute(
+      'UPDATE sectors SET name = ?, latitude = ?, longitude = ? WHERE sector_id = ? AND user_id = ?',
+      [name, latitude, longitude, sectorId, userId]
+    );
+    return result;
+  } catch (error) {
+    console.error('Error updating sector:', error);
+    throw error;
+  }
+};
+
+const removeSector = async (sectorId, userId) => {
+  try {
+    const [result] = await db.execute(
+      'DELETE FROM sectors WHERE sector_id = ? AND user_id = ?',
+      [sectorId, userId]
+    );
+    if (result.affectedRows === 0) {
+      throw new Error("Sector not found or not authorized to delete.");
+    }
+    return result;
+  } catch (error) {
+    console.error('Error deleting sector:', error);
+    throw error;
+  }
+};
+
+const getSectorById = async (sectorId, userId) => {
+  try {
+    const [rows] = await db.execute(
+      'SELECT sector_id, name, latitude, longitude FROM sectors WHERE sector_id = ? AND user_id = ?',
+      [sectorId, userId]
+    );
+    return rows[0];
+  } catch (error) {
+    console.error('Error fetching sector:', error);
+    throw error;
+  }
+};
+
 module.exports = { 
   getSectorsByUserId, 
   addSector,
-  checkSectorNameExists
+  checkSectorNameExists,
+  updateSector,
+  removeSector,
+  getSectorById
 };

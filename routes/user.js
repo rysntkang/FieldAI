@@ -1,6 +1,6 @@
 const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
-const { createSector } = require('../controllers/sectorController');
+const { createSector, editSector, deleteSector } = require('../controllers/sectorController');
 const { handleImageUpload, getUploadAttempts } = require('../controllers/imageController');
 const { getDashboardData, updateUserSettings, getWeatherData } = require('../controllers/userController');
 
@@ -18,7 +18,9 @@ router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
       user: req.session.user,
       weatherData,
       sectors,
-      activePage: 'dashboard'
+      activePage: 'dashboard',
+      successMessage: req.query.success,
+      errorMessage: req.query.error
     });
   } catch (error) {
     console.error('Dashboard error:', error);
@@ -30,20 +32,7 @@ router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
 router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
   try {
     const sectorId = req.params.sectorId;
-    let attempts;
-    attempts = await getUploadAttempts(sectorId);
-    
-    if (process.env.INSTANCE_UNIX_SOCKET){
-      const getSignedUrl = require('../middleware/gcsimage');
-      for (const attempt of attempts) {
-        attempt.images = await Promise.all(
-          attempt.images.map(async (image) => ({
-            ...image,
-            file_path: await getSignedUrl(image.file_path), // Replace file_path with signed URL
-          }))
-        );
-      }
-    }
+    const attempts = await getUploadAttempts(sectorId);
     res.render('partials/user/modals/resultContent', {
       attempts,
       sectorId
@@ -74,6 +63,17 @@ router.post('/user/addSector', ensureAuthenticated, (req, res) => {
   createSector(req, res);
 });
 
+router.post('/user/editSector', ensureAuthenticated, editSector);
+
+router.delete('/user/deleteSector/:sectorId', ensureAuthenticated, async (req, res) => {
+  try {
+    await deleteSector(req, res);
+  } catch (error) {
+    console.error('Delete sector error:', error);
+    res.status(500).json({ message: 'Error deleting sector.' });
+  }
+});
+
 router.get('/upload', ensureAuthenticated, (req, res) => {
   try {
     const sectorId = req.query.sectorId;
@@ -90,7 +90,7 @@ router.post('/upload/image',
   ensureAuthenticated, 
   upload.array('images', 10), 
   handleUploadErrors, 
-  handleImageUpload,
+  handleImageUpload
 );
 
 router.post('/user/settings', ensureAuthenticated, updateUserSettings);
@@ -104,6 +104,5 @@ router.get('/user/weather', ensureAuthenticated, async (req, res) => {
     res.status(500).json({ error: 'Error fetching weather data' });
   }
 });
-
 
 module.exports = router;

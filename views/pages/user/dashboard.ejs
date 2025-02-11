@@ -32,23 +32,12 @@
     }
     .sector-card {
       padding: 0;
-      cursor: pointer;
-    }
-    .sector-card .card {
-      height: 100%;
-      margin: 0;
-      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
-    }
-    .sector-card .card:hover {
-      transform: scale(1.02);
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-      border: 1px solid #007bff;
+      cursor: default;
     }
     #map {
       height: 300px;
       margin-top: 10px;
     }
-    /* Chart container styling */
     .chart-container {
       position: relative;
       background-color: #fff;
@@ -58,7 +47,6 @@
       margin-bottom: 20px;
       height: 500px;
     }
-    /* Chart header styling */
     .chart-header {
       display: flex;
       justify-content: space-between;
@@ -82,15 +70,17 @@
       font-size: 1.2em;
       margin-right: 8px;
     }
-    /* Weather source label styling */
     #weatherSource {
       margin-top: 10px;
       font-style: italic;
       color: #555;
     }
-    /* Reset button styling */
     #resetWeatherBtn {
       margin: 10px 0;
+    }
+    /* --- Added CSS for button spacing --- */
+    .btn-container .btn {
+      margin: 5px;
     }
   </style>
 </head>
@@ -99,31 +89,50 @@
 
   <div class="content">
     <h3>Your Sectors</h3>
+
+    <!-- Success/Error Message Placeholders -->
+    <% if (successMessage) { %>
+      <div class="alert alert-success"><%= successMessage %></div>
+    <% } %>
+    <% if (errorMessage) { %>
+      <div class="alert alert-danger"><%= errorMessage %></div>
+    <% } %>
+
     <div class="row" id="sectors-container">
       <% if (sectors.length > 0) { %>
         <% sectors.forEach(sector => { %>
-          <!-- Embed sector coordinates as data attributes -->
           <div class="col-md-3 sector-card" data-lat="<%= sector.latitude %>" data-lng="<%= sector.longitude %>">
             <div class="card">
               <div class="card-body">
                 <h5 class="card-title"><%= sector.name %></h5>
                 <p class="card-text">Lat: <%= sector.latitude %>, Lng: <%= sector.longitude %></p>
-                <button class="btn btn-primary btn-sm upload-btn" 
-                        data-toggle="modal" 
-                        data-target="#uploadImageModal" 
-                        data-sectorid="<%= sector.sector_id %>">
-                  Upload Images
-                </button>
-                <button class="btn btn-secondary btn-sm view-results-btn" 
-                        data-toggle="modal" 
-                        data-target="#resultsModal" 
-                        data-sectorid="<%= sector.sector_id %>">
-                  View Results
-                </button>
+                <div class="btn-container d-flex justify-content-around flex-wrap mt-2">
+                  <button class="btn btn-primary btn-sm upload-btn" 
+                          data-toggle="modal" 
+                          data-target="#uploadImageModal" 
+                          data-sectorid="<%= sector.sector_id %>">
+                    Upload Images
+                  </button>
+                  <button class="btn btn-secondary btn-sm view-results-btn" 
+                          data-toggle="modal" 
+                          data-target="#resultsModal" 
+                          data-sectorid="<%= sector.sector_id %>">
+                    View Results
+                  </button>
+                  <button class="btn btn-info btn-sm update-weather-btn">
+                    Update Weather
+                  </button>
+                  <button class="btn btn-warning btn-sm edit-sector-btn" data-sectorid="<%= sector.sector_id %>">
+                    Edit Sector
+                  </button>
+                  <button class="btn btn-dark btn-sm delete-sector-btn" data-sectorid="<%= sector.sector_id %>">
+                    Delete Sector
+                  </button>
+                </div>
               </div>
             </div>
           </div>
-        <% }); %>
+        <% }); %>        
       <% } else { %>
         <div class="col-12 text-left">
           <p class="text-muted">No sectors available. Please add a new sector to get started.</p>
@@ -138,7 +147,6 @@
 
     <% if (weatherData && weatherData.length > 0) { %>
       <h3>Weather Trend Forecast</h3>
-      <!-- Weather source information and reset button -->
       <p id="weatherSource">
         Currently displaying weather data for: Account Location (<%= user.latitude %>, <%= user.longitude %>)
       </p>
@@ -154,7 +162,6 @@
               </div>
             </div>
           </div>
-          <!-- Heat Accumulation (GDD) Chart -->
           <div class="col-md-8">
             <div class="chart-container">
               <div class="chart-header">
@@ -168,7 +175,6 @@
           </div>
         </div>
         <hr>
-        <!-- Temperature Chart -->
         <div class="chart-container">
           <div class="chart-header">
             <h4>Temperature</h4>
@@ -179,7 +185,6 @@
           <canvas id="temperatureChart" class="chart-canvas"></canvas>
         </div>
         <hr>
-        <!-- Precipitation Chart -->
         <div class="chart-container">
           <div class="chart-header">
             <h4>Precipitation</h4>
@@ -190,7 +195,6 @@
           <canvas id="precipitationChart" class="chart-canvas"></canvas>
         </div>
         <hr>
-        <!-- Wind Speed Chart -->
         <div class="chart-container">
           <div class="chart-header">
             <h4>Wind Speed</h4>
@@ -201,7 +205,6 @@
           <canvas id="windSpeedChart" class="chart-canvas"></canvas>
         </div>
         <hr>
-        <!-- Soil Moisture Chart -->
         <div class="chart-container">
           <div class="chart-header">
             <h4>Soil Moisture</h4>
@@ -215,7 +218,9 @@
       <hr>
     <% } %>
 
+    <!-- Include modals -->
     <%- include('../../partials/user/modals/addSector') %>
+    <%- include('../../partials/user/modals/editSector') %>
     <%- include('../../partials/user/modals/upload') %>
     <%- include('../../partials/user/modals/results') %>
   </div>
@@ -226,10 +231,8 @@
 
   <%- include('../../partials/user/scripts') %>
   <script>
-    // Declare global chart variables
     let temperatureChart, precipitationChart, windSpeedChart, gddChart, soilMoistureChart;
 
-    // Create a chart using Chart.js
     function createChart(canvasId, data, labels, title, yLabel, borderColor, backgroundColor, type = 'line') {
       const ctx = document.getElementById(canvasId).getContext('2d');
       return new Chart(ctx, {
@@ -267,13 +270,11 @@
     const accountLat = <%= user.latitude %>;
     const accountLng = <%= user.longitude %>;
 
-    // Initialize map when adding a sector
     $('#addSectorModal').on('shown.bs.modal', function() {
       initMap();
       setTimeout(() => map.invalidateSize(), 100);
     });
 
-    // Map functions
     let map, marker;
     function initMap() {
       if (map) { map.off(); map.remove(); map = null; }
@@ -293,16 +294,12 @@
     }
 
     function generateFarmingTips(data) {
-      // Get today's date in YYYY-MM-DD format.
       const todayDate = new Date().toISOString().split("T")[0];
-      // Try to find today's forecast entry.
       let today = data.find(item => item.date === todayDate);
-      // If today's data isn't found, fall back to the first available entry.
       if (!today) {
         today = data[0];
       }
       
-      // Ensure we work with numbers.
       const gddAccumulated = Number(today.gdd_accumulated) || 0;
       const soilMoisture   = Number(today.soil_moisture)   || 0;
       const precipitation  = Number(today.precipitation)   || 0;
@@ -312,7 +309,6 @@
       
       const tips = [];
       
-      // --- GDD (Growing Degree Days) Tip ---
       if (gddAccumulated > 100) {
         tips.push({
           emoji: '✔️',
@@ -329,7 +325,6 @@
         });
       }
       
-      // --- Soil Moisture Tip ---
       if (soilMoisture < 0.3) {
         tips.push({
           emoji: '🚰',
@@ -346,7 +341,6 @@
         });
       }
       
-      // --- Precipitation Tip ---
       if (precipitation > 5) {
         tips.push({
           emoji: '☔',
@@ -370,7 +364,6 @@
         });
       }
       
-      // --- Wind Speed Tip ---
       if (windSpeed > 15) {
         tips.push({
           emoji: '💨',
@@ -394,7 +387,6 @@
         });
       }
       
-      // --- Temperature Tip (Frost Risk) ---
       if (tempMin < 10) {
         tips.push({
           emoji: '❄️',
@@ -411,7 +403,6 @@
         });
       }
       
-      // --- Extra Temperature Tip (High Temperature) ---
       if (tempMax > 35) {
         tips.push({
           emoji: '🔥',
@@ -424,11 +415,9 @@
       return tips;
     }
 
-
     document.addEventListener('DOMContentLoaded', () => {
       const weatherData = <%- JSON.stringify(weatherData) %>;
 
-      // Helper to map tip text to a chart canvas id
       function getTargetChartId(tipText) {
         const text = tipText.toLowerCase();
         if (text.includes('irrigation') || text.includes('soil moisture')) return 'soilMoistureChart';
@@ -472,7 +461,6 @@
         });
       });
 
-      // Create the initial charts
       temperatureChart = createChart(
         'temperatureChart',
         weatherData.map(item => item.temp_max),
@@ -527,39 +515,107 @@
         gddChart.resize();
         soilMoistureChart.resize();
       });
+
+      document.querySelectorAll('.edit-sector-btn').forEach(button => {
+        button.addEventListener('click', function() {
+          const sectorCard = this.closest('.sector-card');
+          const sectorId = this.getAttribute('data-sectorid');
+          const sectorName = sectorCard.querySelector('.card-title').textContent;
+          const latitude = sectorCard.getAttribute('data-lat');
+          const longitude = sectorCard.getAttribute('data-lng');
+
+          document.getElementById('editSectorId').value = sectorId;
+          document.getElementById('editSectorName').value = sectorName;
+          document.getElementById('editLatitude').value = latitude;
+          document.getElementById('editLongitude').value = longitude;
+
+          $('#editSectorModal').modal('show');
+
+          initEditMap(latitude, longitude);
+        });
+      });
+
+      function initEditMap(lat, lng) {
+        if (window.editMapInstance) {
+          window.editMapInstance.remove();
+        }
+        window.editMapInstance = L.map('editMap').setView([lat, lng], 13);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(window.editMapInstance);
+        let marker = L.marker([lat, lng], { draggable: true }).addTo(window.editMapInstance);
+        marker.on('dragend', function() {
+          const pos = marker.getLatLng();
+          document.getElementById('editLatitude').value = pos.lat;
+          document.getElementById('editLongitude').value = pos.lng;
+        });
+      }
     });
 
-    // Sector card click handler: update weather data based on sector coordinates.
+    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      try {
+        const response = await fetch('/upload/image', { method: 'POST', body: formData });
+        if (!response.ok) throw new Error(await response.text());
+        alert('Upload successful!');
+        $('#uploadImageModal').modal('hide');
+        location.reload();
+      } catch (error) {
+        alert(`Upload failed: ${error.message}`);
+      }
+    });
+
+    async function loadResultsModal(sectorId) {
+      const modal = $('#resultsModal');
+      const content = document.getElementById('resultsContent');
+      content.innerHTML = `
+        <div class="text-center py-4">
+          <div class="spinner-border text-primary" role="status">
+            <span class="sr-only">Loading...</span>
+          </div>
+        </div>`;
+      try {
+        const response = await fetch(`/results/${sectorId}`);
+        if (!response.ok) throw new Error(`Server error: ${response.status}`);
+        content.innerHTML = await response.text();
+        modal.modal('show');
+      } catch (error) {
+        content.innerHTML = `<div class="alert alert-danger">Failed to load results: ${error.message}</div>`;
+      }
+    }
+
     document.getElementById('sectors-container').addEventListener('click', (e) => {
+      const updateBtn = e.target.closest('.update-weather-btn');
+      if (updateBtn) {
+        const sectorCard = updateBtn.closest('.sector-card');
+        if (sectorCard) {
+          const lat = sectorCard.getAttribute('data-lat');
+          const lng = sectorCard.getAttribute('data-lng');
+          const sectorName = sectorCard.querySelector('.card-title').textContent;
+          updateWeatherForSector(lat, lng, sectorName);
+        }
+        return;
+      }
       const uploadBtn = e.target.closest('.upload-btn');
-      const resultsBtn = e.target.closest('.view-results-btn');
       if (uploadBtn) {
         document.getElementById('uploadSectorId').value = uploadBtn.dataset.sectorid;
+        return;
       }
+      const resultsBtn = e.target.closest('.view-results-btn');
       if (resultsBtn) {
         loadResultsModal(resultsBtn.dataset.sectorid);
-      }
-      const sectorCard = e.target.closest('.sector-card');
-      if (sectorCard) {
-        const lat = sectorCard.getAttribute('data-lat');
-        const lng = sectorCard.getAttribute('data-lng');
-        const sectorName = sectorCard.querySelector('.card-title').textContent;
-        updateWeatherForSector(lat, lng, sectorName);
+        return;
       }
     });
 
-    // Function to update weather data for a specific location.
     async function updateWeatherForSector(lat, lng, source = 'Sector') {
       try {
         const response = await fetch(`/user/weather?lat=${lat}&lng=${lng}`);
         if (!response.ok) throw new Error(await response.text());
         const newWeatherData = await response.json();
 
-        // Update the weather source label
         document.getElementById('weatherSource').textContent =
           `Currently displaying weather data for: ${source} Location (${lat}, ${lng})`;
 
-        // Update farming tips with the new weather data
         function getTargetChartId(tipText) {
           const text = tipText.toLowerCase();
           if (text.includes('irrigation') || text.includes('soil moisture')) return 'soilMoistureChart';
@@ -602,14 +658,12 @@
           });
         });
 
-        // Destroy existing charts (if they exist) before creating new ones
         if (temperatureChart) temperatureChart.destroy();
         if (precipitationChart) precipitationChart.destroy();
         if (windSpeedChart) windSpeedChart.destroy();
         if (gddChart) gddChart.destroy();
         if (soilMoistureChart) soilMoistureChart.destroy();
 
-        // Re-create charts with the new weather data
         temperatureChart = createChart(
           'temperatureChart',
           newWeatherData.map(item => item.temp_max),
@@ -662,58 +716,34 @@
       }
     }
 
-    // Reset button handler: revert to account location weather data.
-    document.getElementById('resetWeatherBtn').addEventListener('click', () => {
-      updateWeatherForSector(accountLat, accountLng, 'Account');
-    });
-
-    // File Upload Handling
-    document.getElementById('imageInput').addEventListener('change', function() {
-      const maxFiles = 5;
-      if (this.files.length > maxFiles) {
-        alert(`Maximum ${maxFiles} files allowed`);
-        this.value = '';
+    // Delete Sector Button Handler with error redirection
+    document.getElementById('sectors-container').addEventListener('click', (e) => {
+      const deleteBtn = e.target.closest('.delete-sector-btn');
+      if (deleteBtn) {
+        const sectorId = deleteBtn.getAttribute('data-sectorid');
+        const confirmDelete = confirm('Are you sure you want to delete this sector? This action cannot be undone.');
+        if (confirmDelete) {
+          fetch(`/user/deleteSector/${sectorId}`, {
+            method: 'DELETE'
+          })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(err => { 
+                throw new Error(err.message || 'Failed to delete sector.'); 
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            window.location.href = '/user/dashboard?success=' + encodeURIComponent(data.message);
+          })
+          .catch(error => {
+            window.location.href = '/user/dashboard?error=' + encodeURIComponent(error.message);
+          });
+        }
         return;
       }
-      this.nextElementSibling.textContent = this.files.length > 0 
-        ? `${this.files.length} files selected` 
-        : 'Choose files';
     });
-
-    // Upload Form Submission
-    document.getElementById('uploadForm').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const formData = new FormData(e.target);
-      try {
-        const response = await fetch('/upload/image', { method: 'POST', body: formData });
-        if (!response.ok) throw new Error(await response.text());
-        alert('Upload successful!');
-        $('#uploadImageModal').modal('hide');
-        location.reload();
-      } catch (error) {
-        alert(`Upload failed: ${error.message}`);
-      }
-    });
-
-    // Results Modal Handler
-    async function loadResultsModal(sectorId) {
-      const modal = $('#resultsModal');
-      const content = document.getElementById('resultsContent');
-      content.innerHTML = `
-        <div class="text-center py-4">
-          <div class="spinner-border text-primary" role="status">
-            <span class="sr-only">Loading...</span>
-          </div>
-        </div>`;
-      try {
-        const response = await fetch(`/results/${sectorId}`);
-        if (!response.ok) throw new Error(`Server error: ${response.status}`);
-        content.innerHTML = await response.text();
-        modal.modal('show');
-      } catch (error) {
-        content.innerHTML = `<div class="alert alert-danger">Failed to load results: ${error.message}</div>`;
-      }
-    }
   </script>
 </body>
 </html>

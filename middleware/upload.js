@@ -1,7 +1,6 @@
 const multer = require('multer');
 const path = require('path');
 
-
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
   if (allowedTypes.includes(file.mimetype)) {
@@ -14,9 +13,8 @@ const fileFilter = (req, file, cb) => {
 let storage;
 if (process.env.INSTANCE_UNIX_SOCKET === 'true') {
   storage = multer.memoryStorage();
-}
-else{
-  const storage = multer.diskStorage({
+} else {
+  storage = multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, path.join(__dirname, '../public/uploads'));
     },

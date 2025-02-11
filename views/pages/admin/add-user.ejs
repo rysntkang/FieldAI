@@ -35,10 +35,10 @@
       padding: 20px;
     }
     #map {
-        height: 300px;
-        margin-top: 20px;
-        border: 1px solid #ddd;
-        border-radius: 8px;
+      height: 300px;
+      margin-top: 20px;
+      border: 1px solid #ddd;
+      border-radius: 8px;
     }
   </style>
 </head>
@@ -48,6 +48,24 @@
 
   <div class="content">
     <h3>Add Users</h3>
+    
+    <% if (success) { %>
+      <div id="success-alert" class="alert alert-success alert-dismissible fade show" role="alert">
+        <%= success %>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    <% } %>
+    <% if (error) { %>
+      <div id="error-alert" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <%= error %>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+    <% } %>
+    
     <form action="/admin/add-user" method="POST">
       <div class="form-group">
         <label for="username">Username</label>
@@ -60,6 +78,13 @@
       <div class="form-group">
         <label for="password">Password</label>
         <input type="password" name="password" id="password" class="form-control" required>
+      </div>
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select name="role" id="role" class="form-control">
+          <option value="User">User</option>
+          <option value="Admin">Admin</option>
+        </select>
       </div>
 
       <label for="map">Select Farm Location:</label>
@@ -94,7 +119,6 @@
 
         marker = L.marker([latitude, longitude], { draggable: true }).addTo(map);
 
-
         document.getElementById('latitude').value = latitude;
         document.getElementById('longitude').value = longitude;
 
@@ -115,6 +139,12 @@
     }
 
     document.addEventListener('DOMContentLoaded', initMap);
+    
+    $(document).ready(function() {
+      setTimeout(function() {
+        $(".alert").alert('close');
+      }, 10000);
+    });
   </script>
 </body>
 </html>

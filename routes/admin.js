@@ -1,3 +1,4 @@
+// admin.js
 const express = require('express');
 const { 
   getFilteredUsers,
@@ -11,7 +12,7 @@ const router = express.Router();
 
 const ensureAuthenticated = (req, res, next) => {
   if (req.session?.user) return next();
-  res.redirect('/login');
+  res.redirect('/login?error=' + encodeURIComponent('Please login to access admin functionalities.'));
 };
 
 router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
@@ -42,14 +43,15 @@ router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
       users,
       uploadAttempts,
       activePage: 'dashboard',
-      query: req.query
+      query: req.query,
+      success: req.query.success,
+      error: req.query.error
     });
   } catch (error) {
     console.error('Error fetching data:', error);
     res.status(500).send('An error occurred while fetching data.');
   }
 });
-
 
 router.get('/admin/upload-attempts', ensureAuthenticated, async (req, res) => {
   try {
@@ -62,53 +64,30 @@ router.get('/admin/upload-attempts', ensureAuthenticated, async (req, res) => {
 });
 
 router.get('/admin/add-user', ensureAuthenticated, async (req, res) => {
-  res.render('pages/admin/add-user', { activePage: 'add-user' });
+  res.render('pages/admin/add-user', { 
+    activePage: 'add-user',
+    error: req.query.error,
+    success: req.query.success
+  });
 });
 
-router.post('/admin/add-user', ensureAuthenticated, async (req, res) => {
-    const { username, email, password, latitude, longitude } = req.body;
-    try {
-        const success = await addUser(username, email, password, latitude, longitude);
-        if (success) {
-            res.redirect('/admin/dashboard');
-        } else {
-            res.status(500).send('Failed to add user.');
-        }
-        } catch (error) {
-            console.error('Error adding user:', error);
-            res.status(400).send(error.message);
-        }
-    });
+router.post('/admin/add-user', ensureAuthenticated, addUser);
 
-// POST route to update user settings via the modal form
-router.post('/admin/edit-user', ensureAuthenticated, async (req, res) => {
-  const { user_id, username, email, latitude, longitude } = req.body;
-  try {
-    const success = await updateUserSettings(user_id, { username, email, latitude, longitude });
-    if (success) {
-      res.redirect('/admin/dashboard');
-    } else {
-      res.status(400).send('Update failed');
-    }
-  } catch (error) {
-    console.error('Error updating user:', error);
-    res.status(500).send(error.message);
-  }
-});
+router.post('/admin/edit-user', ensureAuthenticated, updateUserSettings);
 
 router.post('/admin/delete-user', ensureAuthenticated, async (req, res) => {
-    const { user_id } = req.body;
-    try {
-      const success = await deleteUserById(user_id);
-      if (success) {
-        res.redirect('/admin/dashboard');
-      } else {
-        res.status(400).send('Deletion failed');
+  const { user_id } = req.body;
+  try {
+    const success = await deleteUserById(user_id);
+    if (success) {
+      res.redirect('/admin/dashboard?success=' + encodeURIComponent('User deleted successfully.'));
+    } else {
+      res.redirect('/admin/dashboard?error=' + encodeURIComponent('Failed to delete user.'));
     }
-    } catch (error) {
+  } catch (error) {
     console.error('Error deleting user:', error);
-    res.status(500).send(error.message);
-    }
+    res.redirect('/admin/dashboard?error=' + encodeURIComponent(error.message));
+  }
 });
 
 module.exports = router;
