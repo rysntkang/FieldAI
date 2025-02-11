@@ -35,7 +35,7 @@
                 <div class="col-md-4 mb-3">
                   <div class="card h-100">
                     <% if (process.env.INSTANCE_UNIX_SOCKET){
-                      const getSignedUrl = require(../middleware/gcsimage);
+                      const getSignedUrl = require('/middleware/gcsimage');
                       let url; 
                       url = getSignedUrl(file_path); %>
                       <img src="<%= image.url %>" class="card-img-top" style="max-height: 200px; object-fit: cover;">
