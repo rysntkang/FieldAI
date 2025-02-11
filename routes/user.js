@@ -33,6 +33,19 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
   try {
     const sectorId = req.params.sectorId;
     const attempts = await getUploadAttempts(sectorId);
+
+    if (process.env.INSTANCE_UNIX_SOCKET){
+      const getSignedUrl = require('../middleware/gcsimage');
+      for (const attempt of attempts) {
+        attempt.images = await Promise.all(
+          attempt.images.map(async (image) => ({
+            ...image,
+            file_path: await getSignedUrl(image.file_path), // Replace file_path with signed URL
+          }))
+        );
+      }
+    }
+    
     res.render('partials/user/modals/resultContent', {
       attempts,
       sectorId
