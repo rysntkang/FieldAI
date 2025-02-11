@@ -4,10 +4,8 @@ const { findUserByEmail, findUserByUsername, updateUser } = require('../models/u
 const { getSectorsByUserId } = require('../models/sectorModel');
 
 const getWeatherData = async (req) => {
-  // Use req.query if available; otherwise, use an empty object.
   const query = req.query || {};
   
-  // If query parameters are provided, use them; otherwise, fall back to session values.
   const latitude = query.lat ? parseFloat(query.lat) : req.session.user.latitude;
   const longitude = query.lng ? parseFloat(query.lng) : req.session.user.longitude;
   
@@ -51,12 +49,15 @@ const getDashboardData = async (req) => {
 const updateUserSettings = async (req, res) => {
   const { email, username, password, confirmPassword, latitude, longitude } = req.body;
   const userId = req.session.user.user_id;
+
   if (!email || !username || !latitude || !longitude) {
     return res.redirect('/user/settings?error=All fields are required');
   }
+
   if (password !== confirmPassword) {
     return res.redirect('/user/settings?error=Passwords do not match');
   }
+
   try {
     const existingEmail = await findUserByEmail(email);
     if (existingEmail && existingEmail.user_id !== userId) {
@@ -66,28 +67,37 @@ const updateUserSettings = async (req, res) => {
     if (existingUsername && existingUsername.user_id !== userId) {
       return res.redirect('/user/settings?error=Username already taken');
     }
+
     const updates = {
-        email,
-        username,
-        latitude: parseFloat(latitude),
-        longitude: parseFloat(longitude)
-      };
-      if (password) {
-        updates.password = await bcryptjs.hash(password, 10);
-      }
-      const { password: _, ...sessionUpdates } = updates;
-        req.session.user = { ...req.session.user, ...sessionUpdates };
-        req.session.save((err) => {
-        if (err) {
-            console.error('Session save error:', err);
-            return res.redirect('/user/settings?error=Error updating session');
-        }
-        res.redirect('/user/settings?success=Settings updated successfully');
-        });
-    } catch (error) {
-        console.error('Update error:', error);
-        res.redirect('/user/settings?error=Error updating user');
+      email,
+      username,
+      latitude: parseFloat(latitude),
+      longitude: parseFloat(longitude)
+    };
+
+    if (password) {
+      updates.password = await bcryptjs.hash(password, 10);
     }
+
+    const success = await updateUser(userId, updates);
+    if (!success) {
+      return res.redirect('/user/settings?error=Error updating user');
+    }
+
+    const { password: _, ...sessionUpdates } = updates;
+    req.session.user = { ...req.session.user, ...sessionUpdates };
+    req.session.save((err) => {
+      if (err) {
+        console.error('Session save error:', err);
+        return res.redirect('/user/settings?error=Error updating session');
+      }
+      res.redirect('/user/settings?success=Settings updated successfully');
+    });
+  } catch (error) {
+    console.error('Update error:', error);
+    res.redirect('/user/settings?error=Error updating user');
+  }
 };
+
 
 module.exports = { getDashboardData, updateUserSettings, getWeatherData };
