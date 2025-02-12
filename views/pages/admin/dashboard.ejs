@@ -212,23 +212,21 @@
             </button>
           </div>
           <div class="modal-body">
-            <!-- Hidden user ID -->
             <input type="hidden" name="user_id" id="editUserId">
             
-            <!-- Username and Email -->
             <div class="form-group">
               <label for="editUsername">Username</label>
-              <input type="text" class="form-control" name="username" id="editUsername" required>
+              <input type="text" class="form-control" name="username" id="editUsername">
             </div>
             <div class="form-group">
               <label for="editEmail">Email</label>
-              <input type="email" class="form-control" name="email" id="editEmail" required>
+              <input type="email" class="form-control" name="email" id="editEmail">
             </div>
             
             <!-- Role Dropdown -->
             <div class="form-group">
               <label for="editRole">Role</label>
-              <select class="form-control" name="role" id="editRole" required>
+              <select class="form-control" name="role" id="editRole">
                 <option value="User">User</option>
                 <option value="Admin">Admin</option>
               </select>
@@ -321,78 +319,97 @@
       });
     });
 
-  $('#editUserModal').on('shown.bs.modal', function() {
-    var lat = parseFloat($('#editLatitude').val()) || 0;
-    var lng = parseFloat($('#editLongitude').val()) || 0;
+    // Add this new block of JavaScript for populating the Edit User Modal
+    document.querySelectorAll('.btn-edit').forEach(button => {
+      button.addEventListener('click', function() {
+        const userId = this.getAttribute('data-user-id');
+        const username = this.closest('tr').getAttribute('data-username');
+        const email = this.closest('tr').getAttribute('data-email');
+        const role = this.closest('tr').getAttribute('data-role');
+        const latitude = this.closest('tr').getAttribute('data-latitude');
+        const longitude = this.closest('tr').getAttribute('data-longitude');
 
-    var editMap = L.map('editMap').setView([lat, lng], 13);
-    
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
-    }).addTo(editMap);
-    
-    var marker = L.marker([lat, lng], { draggable: true }).addTo(editMap);
-    
-    marker.on('dragend', function(e) {
-      var newLatLng = marker.getLatLng();
-      $('#editLatitude').val(newLatLng.lat);
-      $('#editLongitude').val(newLatLng.lng);
+        document.getElementById('editUserId').value = userId;
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editLatitude').value = latitude;
+        document.getElementById('editLongitude').value = longitude;
+      });
     });
 
-    editMap.on('click', function(e) {
-      marker.setLatLng(e.latlng);
-      $('#editLatitude').val(e.latlng.lat);
-      $('#editLongitude').val(e.latlng.lng);
+
+    $('#editUserModal').on('shown.bs.modal', function() {
+      var lat = parseFloat($('#editLatitude').val()) || 0;
+      var lng = parseFloat($('#editLongitude').val()) || 0;
+
+      var editMap = L.map('editMap').setView([lat, lng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(editMap);
+
+      var marker = L.marker([lat, lng], { draggable: true }).addTo(editMap);
+
+      marker.on('dragend', function(e) {
+        var newLatLng = marker.getLatLng();
+        $('#editLatitude').val(newLatLng.lat);
+        $('#editLongitude').val(newLatLng.lng);
+      });
+
+      editMap.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        $('#editLatitude').val(e.latlng.lat);
+        $('#editLongitude').val(e.latlng.lng);
+      });
+
+      $(this).data('leafletMap', editMap);
     });
-    
-    $(this).data('leafletMap', editMap);
-  });
 
-  $('#editUserModal').on('hidden.bs.modal', function() {
-    var map = $(this).data('leafletMap');
-    if (map) {
-      map.remove();
-      $(this).removeData('leafletMap');
-    }
-  });
-
-  document.querySelectorAll('.btn-view-images').forEach(button => {
-    button.addEventListener('click', function() {
-      const uploadId = this.getAttribute('data-upload-id');
-      // Find the matching upload attempt from our data
-      const attempt = uploadAttemptsData.find(a => a.upload_id == uploadId);
-      const imagesContainer = document.getElementById('imagesContainer');
-      imagesContainer.innerHTML = ''; // Clear any previous images
-
-      if (attempt && attempt.images && attempt.images.length > 0) {
-        attempt.images.forEach(image => {
-          // Create a container for each image and its caption
-          const colDiv = document.createElement('div');
-          colDiv.className = 'col-md-3 mb-3';
-
-          // Create the image element
-          const imgElem = document.createElement('img');
-          imgElem.src = image.file_path; // Ensure this is a full URL or a valid local path
-          imgElem.alt = 'Uploaded image';
-          imgElem.className = 'img-fluid img-thumbnail';
-
-          // Create a caption element to display the corn count
-          const caption = document.createElement('p');
-          caption.className = 'text-center mt-2';
-          // If corn_count is null/undefined, you might want to display "Pending" or similar
-          caption.innerHTML = `Corn Count: ${image.corn_count !== null ? image.corn_count : 'Pending'}`;
-
-          // Append the image and caption to the container
-          colDiv.appendChild(imgElem);
-          colDiv.appendChild(caption);
-          imagesContainer.appendChild(colDiv);
-        });
-      } else {
-        imagesContainer.innerHTML = '<p>No images found for this upload attempt.</p>';
+    $('#editUserModal').on('hidden.bs.modal', function() {
+      var map = $(this).data('leafletMap');
+      if (map) {
+        map.remove();
+        $(this).removeData('leafletMap');
       }
     });
-  });
 
+    document.querySelectorAll('.btn-view-images').forEach(button => {
+      button.addEventListener('click', function() {
+        const uploadId = this.getAttribute('data-upload-id');
+        // Find the matching upload attempt from our data
+        const attempt = uploadAttemptsData.find(a => a.upload_id == uploadId);
+        const imagesContainer = document.getElementById('imagesContainer');
+        imagesContainer.innerHTML = ''; // Clear any previous images
+
+        if (attempt && attempt.images && attempt.images.length > 0) {
+          attempt.images.forEach(image => {
+            // Create a container for each image and its caption
+            const colDiv = document.createElement('div');
+            colDiv.className = 'col-md-3 mb-3';
+
+            // Create the image element
+            const imgElem = document.createElement('img');
+            imgElem.src = image.file_path; // Ensure this is a full URL or a valid local path
+            imgElem.alt = 'Uploaded image';
+            imgElem.className = 'img-fluid img-thumbnail';
+
+            // Create a caption element to display the corn count
+            const caption = document.createElement('p');
+            caption.className = 'text-center mt-2';
+            // If corn_count is null/undefined, you might want to display "Pending" or similar
+            caption.innerHTML = `Corn Count: ${image.corn_count !== null ? image.corn_count : 'Pending'}`;
+
+            // Append the image and caption to the container
+            colDiv.appendChild(imgElem);
+            colDiv.appendChild(caption);
+            imagesContainer.appendChild(colDiv);
+          });
+        } else {
+          imagesContainer.innerHTML = '<p>No images found for this upload attempt.</p>';
+        }
+      });
+    });
   </script>
 </body>
 </html>
