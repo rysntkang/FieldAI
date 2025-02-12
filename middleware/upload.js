@@ -11,7 +11,7 @@ const fileFilter = (req, file, cb) => {
 };
 
 let storage;
-if (process.env.INSTANCE_UNIX_SOCKET === 'true') {
+if (process.env.INSTANCE_UNIX_SOCKET) {
   storage = multer.memoryStorage();
 } else {
   // Assign to the already-declared "storage" variable
