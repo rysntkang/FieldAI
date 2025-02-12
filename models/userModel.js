@@ -79,6 +79,7 @@ const updateUser = async (userId, updates) => {
 
 const deleteUser = async (userId) => {
   const [result] = await db.execute('DELETE FROM users WHERE user_id = ?', [userId]);
+  return result.affectedRows > 0;
 };
 
 const getUserById = async (userId) => {

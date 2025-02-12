@@ -7,6 +7,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.25/datatables.min.css"/>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/adminStyles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     .sidebar {
       height: 100vh;
@@ -96,7 +97,8 @@
           <tr 
             data-user-id="<%= user.user_id %>" 
             data-username="<%= user.username %>" 
-            data-email="<%= user.email %>" 
+            data-email="<%= user.email %>"
+            data-role="<%= user.role %>" 
             data-latitude="<%= user.latitude %>" 
             data-longitude="<%= user.longitude %>">
             <td><%= user.user_id %></td>
@@ -211,21 +213,33 @@
           </div>
           <div class="modal-body">
             <input type="hidden" name="user_id" id="editUserId">
+            
             <div class="form-group">
               <label for="editUsername">Username</label>
-              <input type="text" class="form-control" name="username" id="editUsername" required>
+              <input type="text" class="form-control" name="username" id="editUsername">
             </div>
             <div class="form-group">
               <label for="editEmail">Email</label>
-              <input type="email" class="form-control" name="email" id="editEmail" required>
+              <input type="email" class="form-control" name="email" id="editEmail">
             </div>
+            
+            <!-- Role Dropdown -->
             <div class="form-group">
-              <label for="editLatitude">Latitude</label>
-              <input type="text" class="form-control" name="latitude" id="editLatitude">
+              <label for="editRole">Role</label>
+              <select class="form-control" name="role" id="editRole">
+                <option value="User">User</option>
+                <option value="Admin">Admin</option>
+              </select>
             </div>
+            
+            <!-- Hidden Latitude/Longitude Fields -->
+            <input type="hidden" name="latitude" id="editLatitude">
+            <input type="hidden" name="longitude" id="editLongitude">
+            
+            <!-- Map Container -->
             <div class="form-group">
-              <label for="editLongitude">Longitude</label>
-              <input type="text" class="form-control" name="longitude" id="editLongitude">
+              <label for="editMap">Update Location</label>
+              <div id="editMap" style="height: 300px;"></div>
             </div>
           </div>
           <div class="modal-footer">
@@ -236,6 +250,7 @@
       </form>
     </div>
   </div>
+  
 
   <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -289,29 +304,14 @@
   <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.25/datatables.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 
   <script>
     var uploadAttemptsData = <%- JSON.stringify(uploadAttempts) %>;
   </script>
   
   <script>
-    document.querySelectorAll('.btn-edit').forEach(button => {
-      button.addEventListener('click', function() {
-        const userId = this.getAttribute('data-user-id');
-        const row = document.querySelector('tr[data-user-id="' + userId + '"]');
-        const username = row.getAttribute('data-username');
-        const email = row.getAttribute('data-email');
-        const latitude = row.getAttribute('data-latitude');
-        const longitude = row.getAttribute('data-longitude');
-        
-        document.getElementById('editUserId').value = userId;
-        document.getElementById('editUsername').value = username;
-        document.getElementById('editEmail').value = email;
-        document.getElementById('editLatitude').value = latitude;
-        document.getElementById('editLongitude').value = longitude;
-      });
-    });
-    
     document.querySelectorAll('.btn-delete').forEach(button => {
       button.addEventListener('click', function() {
         const userId = this.getAttribute('data-user-id');
@@ -319,39 +319,96 @@
       });
     });
 
-    $(document).ready(function() {
-      $('#uploadsTable').DataTable({
-        order: [[3, 'desc']], 
-        responsive: true,
-        columnDefs: [
-          { responsivePriority: 1, targets: 0 },
-          { responsivePriority: 2, targets: 3 },
-          { responsivePriority: 3, targets: 6 }
-        ]
+    // Add this new block of JavaScript for populating the Edit User Modal
+    document.querySelectorAll('.btn-edit').forEach(button => {
+      button.addEventListener('click', function() {
+        const userId = this.getAttribute('data-user-id');
+        const username = this.closest('tr').getAttribute('data-username');
+        const email = this.closest('tr').getAttribute('data-email');
+        const role = this.closest('tr').getAttribute('data-role');
+        const latitude = this.closest('tr').getAttribute('data-latitude');
+        const longitude = this.closest('tr').getAttribute('data-longitude');
+
+        document.getElementById('editUserId').value = userId;
+        document.getElementById('editUsername').value = username;
+        document.getElementById('editEmail').value = email;
+        document.getElementById('editRole').value = role;
+        document.getElementById('editLatitude').value = latitude;
+        document.getElementById('editLongitude').value = longitude;
       });
     });
 
-    $(document).on('click', '.btn-view-images', function() {
-      const uploadId = $(this).data('upload-id');
-      const attempt = uploadAttemptsData.find(item => item.upload_id == uploadId);
-      $('#imagesContainer').html('');
-      if (attempt && attempt.images && attempt.images.length > 0) {
-        attempt.images.forEach(image => {
-          let imageHtml = `
-            <div class="col-md-4 mb-3">
-              <div class="card">
-                <img src="${image.file_path}" class="card-img-top" alt="Uploaded Image">
-                <div class="card-body p-2">
-                  <p class="card-text text-center">Corn Count: ${image.corn_count !== null ? image.corn_count : 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-          `;
-          $('#imagesContainer').append(imageHtml);
-        });
-      } else {
-        $('#imagesContainer').html('<p>No images available for this upload attempt.</p>');
+
+    $('#editUserModal').on('shown.bs.modal', function() {
+      var lat = parseFloat($('#editLatitude').val()) || 0;
+      var lng = parseFloat($('#editLongitude').val()) || 0;
+
+      var editMap = L.map('editMap').setView([lat, lng], 13);
+
+      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+      }).addTo(editMap);
+
+      var marker = L.marker([lat, lng], { draggable: true }).addTo(editMap);
+
+      marker.on('dragend', function(e) {
+        var newLatLng = marker.getLatLng();
+        $('#editLatitude').val(newLatLng.lat);
+        $('#editLongitude').val(newLatLng.lng);
+      });
+
+      editMap.on('click', function(e) {
+        marker.setLatLng(e.latlng);
+        $('#editLatitude').val(e.latlng.lat);
+        $('#editLongitude').val(e.latlng.lng);
+      });
+
+      $(this).data('leafletMap', editMap);
+    });
+
+    $('#editUserModal').on('hidden.bs.modal', function() {
+      var map = $(this).data('leafletMap');
+      if (map) {
+        map.remove();
+        $(this).removeData('leafletMap');
       }
+    });
+
+    document.querySelectorAll('.btn-view-images').forEach(button => {
+      button.addEventListener('click', function() {
+        const uploadId = this.getAttribute('data-upload-id');
+        // Find the matching upload attempt from our data
+        const attempt = uploadAttemptsData.find(a => a.upload_id == uploadId);
+        const imagesContainer = document.getElementById('imagesContainer');
+        imagesContainer.innerHTML = ''; // Clear any previous images
+
+        if (attempt && attempt.images && attempt.images.length > 0) {
+          attempt.images.forEach(image => {
+            // Create a container for each image and its caption
+            const colDiv = document.createElement('div');
+            colDiv.className = 'col-md-3 mb-3';
+
+            // Create the image element
+            const imgElem = document.createElement('img');
+            imgElem.src = image.file_path; // Ensure this is a full URL or a valid local path
+            imgElem.alt = 'Uploaded image';
+            imgElem.className = 'img-fluid img-thumbnail';
+
+            // Create a caption element to display the corn count
+            const caption = document.createElement('p');
+            caption.className = 'text-center mt-2';
+            // If corn_count is null/undefined, you might want to display "Pending" or similar
+            caption.innerHTML = `Corn Count: ${image.corn_count !== null ? image.corn_count : 'Pending'}`;
+
+            // Append the image and caption to the container
+            colDiv.appendChild(imgElem);
+            colDiv.appendChild(caption);
+            imagesContainer.appendChild(colDiv);
+          });
+        } else {
+          imagesContainer.innerHTML = '<p>No images found for this upload attempt.</p>';
+        }
+      });
     });
   </script>
 </body>

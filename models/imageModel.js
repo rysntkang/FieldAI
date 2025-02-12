@@ -36,7 +36,8 @@ const createUploadAttemptWithImages = async (sectorId, files) => {
     return { uploadId, imageIds };
   } catch (error) {
     await connection.rollback();
-    throw error;
+    console.error('Database error:', error);
+    throw new Error('Error saving image upload data. Please try again.');
   } finally {
     connection.release();
   }
@@ -176,14 +177,12 @@ const deleteUploadAttempt = async (uploadId) => {
   try {
     await connection.beginTransaction();
 
-    // Get all image IDs for this upload attempt.
     const [imageRows] = await connection.execute(
       'SELECT image_id FROM images WHERE upload_id = ?',
       [uploadId]
     );
     const imageIds = imageRows.map(row => row.image_id);
 
-    // Delete corresponding rows from the results table (if any images exist)
     if (imageIds.length > 0) {
       await connection.query(
         'DELETE FROM results WHERE image_id IN (?)',
@@ -191,13 +190,11 @@ const deleteUploadAttempt = async (uploadId) => {
       );
     }
 
-    // Delete the images for this upload attempt
     await connection.query(
       'DELETE FROM images WHERE upload_id = ?',
       [uploadId]
     );
 
-    // Delete the upload attempt record
     await connection.query(
       'DELETE FROM upload_attempts WHERE upload_id = ?',
       [uploadId]

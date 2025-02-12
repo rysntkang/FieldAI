@@ -564,7 +564,7 @@
       }
     });
 
-    async function loadResultsModal(sectorId) {
+    async function loadResultsModal(sectorId) { // ... (Improved - See below)
       const modal = $('#resultsModal');
       const content = document.getElementById('resultsContent');
       content.innerHTML = `
@@ -576,7 +576,7 @@
       try {
         const response = await fetch(`/results/${sectorId}`);
         if (!response.ok) throw new Error(`Server error: ${response.status}`);
-        content.innerHTML = await response.text();
+        content.innerHTML = await response.text();  // Load the new content
         modal.modal('show');
       } catch (error) {
         content.innerHTML = `<div class="alert alert-danger">Failed to load results: ${error.message}</div>`;
@@ -716,7 +716,6 @@
       }
     }
 
-    // Delete Sector Button Handler with error redirection
     document.getElementById('sectors-container').addEventListener('click', (e) => {
       const deleteBtn = e.target.closest('.delete-sector-btn');
       if (deleteBtn) {
@@ -744,6 +743,57 @@
         return;
       }
     });
+
+    document.getElementById('resultsModal').addEventListener('click', function(e) {
+      const deleteAttemptBtn = e.target.closest('.delete-attempt-btn');
+      if (deleteAttemptBtn) {
+        e.stopPropagation();
+        const uploadId = deleteAttemptBtn.dataset.uploadId;
+        console.log('Delete attempt button clicked for upload ID:', uploadId);
+
+        if (confirm("Are you sure you want to delete this upload attempt?")) {
+          fetch(`/user/deleteAttempt/${uploadId}`, {  
+            method: 'DELETE'
+          })
+          .then(response => {
+            if (!response.ok) {
+              return response.json().then(err => {
+                throw new Error(err.message || 'Failed to delete upload attempt.');
+              });
+            }
+            return response.json();
+          })
+          .then(data => {
+            if (data.success) {
+              // Redirect with a success message via query parameters
+              window.location.href = `/user/dashboard?success=${encodeURIComponent(data.message)}`;
+            } else {
+              window.location.href = `/user/dashboard?error=${encodeURIComponent(data.message)}`;
+            }
+          })
+          .catch(error => {
+            window.location.href = `/user/dashboard?error=${encodeURIComponent(error.message)}`;
+            console.error("Error deleting upload attempt:", error);
+          });
+        }
+      }
+    });
+
+    document.getElementById('imageInput').addEventListener('change', function (e) {
+    const files = e.target.files;
+    let labelText = 'Choose files';
+    
+    if (files.length === 1) {
+      labelText = files[0].name;  // or '1 file selected'
+    } else if (files.length > 1) {
+      labelText = files.length + ' files selected';
+    }
+    
+    const label = this.nextElementSibling;
+    if (label) {
+      label.textContent = labelText;
+    }
+  });
   </script>
 </body>
 </html>

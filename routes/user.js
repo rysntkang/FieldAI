@@ -2,13 +2,13 @@ const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
 const { createSector, editSector, deleteSector } = require('../controllers/sectorController');
 const { handleImageUpload, getUploadAttempts, deleteUploadAttemptController } = require('../controllers/imageController');
-const { getDashboardData, updateUserSettings, getWeatherData } = require('../controllers/userController');
+const { getDashboardData, updateUserSettings, getWeatherData, deleteAccount } = require('../controllers/userController');
 
 const router = express.Router();
 
 const ensureAuthenticated = (req, res, next) => {
   if (req.session?.user) return next();
-  res.redirect('/login');
+  res.redirect('/login?error=' + encodeURIComponent('Please login to access functionalities.'));
 };
 
 router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
@@ -33,8 +33,6 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
   try {
     const sectorId = req.params.sectorId;
     const attempts = await getUploadAttempts(sectorId);
-
-    console.log(attempts);
 
     if (process.env.INSTANCE_UNIX_SOCKET){
       const getSignedUrl = require('../middleware/gcsimage');
@@ -106,7 +104,7 @@ router.get('/upload', ensureAuthenticated, (req, res) => {
   }
 });
 
-router.delete('/user/upload-attempt/:uploadId', ensureAuthenticated, deleteUploadAttemptController);
+router.delete('/user/deleteAttempt/:uploadId', ensureAuthenticated, deleteUploadAttemptController);
 
 router.post('/upload/image', 
   ensureAuthenticated, 
@@ -126,5 +124,7 @@ router.get('/user/weather', ensureAuthenticated, async (req, res) => {
     res.status(500).json({ error: 'Error fetching weather data' });
   }
 });
+
+router.post('/user/deleteAccount', ensureAuthenticated, deleteAccount);
 
 module.exports = router;

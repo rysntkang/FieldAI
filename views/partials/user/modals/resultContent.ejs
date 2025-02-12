@@ -31,7 +31,7 @@
             }) %>
           </div>
           <div>
-            <button class="btn btn-danger btn-sm delete-attempt" data-upload-id="<%= attempt.upload_id %>">Delete</button>
+            <button class="btn btn-danger btn-sm delete-attempt-btn" data-upload-id="<%= attempt.upload_id %>" data-sectorid="<%= sectorId %>">Delete</button>
             <i class="fas fa-chevron-down transition-rotate <%= index === 0 ? '' : 'collapsed' %>"></i>
           </div>
         </div>
@@ -95,32 +95,3 @@
     transform: rotate(180deg);
   }
 </style>
-
-<script>
-  document.addEventListener('DOMContentLoaded', function() {
-    document.querySelectorAll('.delete-attempt').forEach(button => {
-      button.addEventListener('click', function(e) {
-        e.stopPropagation();
-        const uploadId = this.dataset.uploadId;
-        if (confirm("Are you sure you want to delete this upload attempt?")) {
-          fetch(`/upload-attempt/${uploadId}`, {
-            method: 'DELETE',
-            headers: { 'Content-Type': 'application/json' }
-          })
-          .then(response => response.json())
-          .then(data => {
-            if (data.success) {
-              location.reload();
-            } else {
-              alert("Failed to delete upload attempt.");
-            }
-          })
-          .catch(error => {
-            console.error("Error:", error);
-            alert("Error deleting upload attempt.");
-          });
-        }
-      });
-    });
-  });
-</script>
