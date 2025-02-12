@@ -54,6 +54,24 @@ const updateUserSettings = async (req, res) => {
     return res.redirect('/user/settings?error=All fields are required');
   }
 
+  if (!latitude || !longitude) {
+    return res.redirect(
+      '/user/settings?error=' + encodeURIComponent('Location missing. Please ensure location is enabled by refreshing.')
+    );
+  }
+
+  if (username.trim().length < 5) {
+    return res.redirect(
+      '/user/settings?error=' + encodeURIComponent('Username must be at least 3 characters long.')
+    );
+  }
+
+  if (password.length < 6) {
+    return res.redirect(
+      '/user/settings?error=' + encodeURIComponent('Password must be at least 6 characters long.')
+    );
+  }
+
   const latNum = parseFloat(latitude);
   const lngNum = parseFloat(longitude);
   if (isNaN(latNum) || isNaN(lngNum)) {

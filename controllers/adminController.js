@@ -36,7 +36,7 @@ const addUser = async (req, res) => {
   }
 
   if (!latitude || !longitude) {
-    return res.redirect('/register?error=' + encodeURIComponent('Location missing. Please ensure location is enabled by refreshing.'));
+    return res.redirect('/admin/add-user?error=' + encodeURIComponent('Location missing. Please ensure location is enabled by refreshing.'));
   }
 
   if (role !== 'User' && role !== 'Admin') {
@@ -87,14 +87,22 @@ const addUser = async (req, res) => {
 };
 
 const updateUserSettings = async (req, res) => {
-  const { user_id, username, email, latitude, longitude } = req.body;
+  const { user_id, username, email, role, latitude, longitude } = req.body;
 
-  if (!user_id || !username || !email || !latitude || !longitude) {
+  // Check that all required fields are provided
+  if (!user_id || !username || !email || !role) {
     return res.redirect(
       '/admin/dashboard?error=' + encodeURIComponent('All fields are required.')
     );
   }
 
+  if (!latitude || !longitude) {
+    return res.redirect(
+      '/admin/dashboard?error=' + encodeURIComponent('Location missing. Please ensure location is enabled by refreshing.')
+    );
+  }
+
+  // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email)) {
     return res.redirect(
@@ -102,40 +110,30 @@ const updateUserSettings = async (req, res) => {
     );
   }
 
-  if (username.trim().length < 3) {
+  // Validate username length
+  if (username.trim().length < 5) {
     return res.redirect(
       '/admin/dashboard?error=' + encodeURIComponent('Username must be at least 3 characters long.')
     );
   }
 
-  if (!latitude || !longitude) {
-    return res.redirect('/admin/dashboard?error=' + encodeURIComponent('Location missing. Please ensure location is enabled by refreshing.'));
+  if (password.length < 6) {
+    return res.redirect(
+      '/admin/dashboard?error=' + encodeURIComponent('Password must be at least 6 characters long.')
+    );
   }
 
-  const lat = parseFloat(latitude);
-  const lon = parseFloat(longitude);
-  if (isNaN(lat) || isNaN(lon)) {
+  // Validate role – only allow 'User' or 'Admin'
+  if (role !== 'User' && role !== 'Admin') {
     return res.redirect(
-      '/admin/dashboard?error=' + encodeURIComponent('Invalid location coordinates.')
+      '/admin/dashboard?error=' + encodeURIComponent('Invalid role provided.')
     );
   }
 
   try {
-    const existingUsername = await findUserByUsername(username);
-    if (existingUsername) {
-      return res.redirect(
-        '/admin/dashboard?error=' + encodeURIComponent('Username is already taken.')
-      );
-    }
-
-    const existingEmail = await findUserByEmail(email);
-    if (existingEmail) {
-      return res.redirect(
-        '/admin/dashboard?error=' + encodeURIComponent('Email is already in use.')
-      );
-    }
-
-    const success = await updateUser(user_id, { username, email, latitude: lat, longitude: lon });
+    // Optionally, you might check for uniqueness of username/email here.
+    // Then update the user record with the new values (including role).
+    const success = await updateUser(user_id, { username, email, role, latitude: lat, longitude: lon });
     if (success) {
       res.redirect('/admin/dashboard?success=' + encodeURIComponent('User updated successfully.'));
     } else {
@@ -146,6 +144,7 @@ const updateUserSettings = async (req, res) => {
     res.redirect('/admin/dashboard?error=' + encodeURIComponent(error.message));
   }
 };
+
 
 const deleteUserById = async (userId) => {
   try {

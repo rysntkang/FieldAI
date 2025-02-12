@@ -7,6 +7,7 @@
   <link rel="stylesheet" type="text/css" href="https://cdn.datatables.net/v/bs4/dt-1.10.25/datatables.min.css"/>
   <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="/css/adminStyles.css">
+  <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
   <style>
     .sidebar {
       height: 100vh;
@@ -96,7 +97,8 @@
           <tr 
             data-user-id="<%= user.user_id %>" 
             data-username="<%= user.username %>" 
-            data-email="<%= user.email %>" 
+            data-email="<%= user.email %>"
+            data-role="<%= user.role %>" 
             data-latitude="<%= user.latitude %>" 
             data-longitude="<%= user.longitude %>">
             <td><%= user.user_id %></td>
@@ -210,7 +212,10 @@
             </button>
           </div>
           <div class="modal-body">
+            <!-- Hidden user ID -->
             <input type="hidden" name="user_id" id="editUserId">
+            
+            <!-- Username and Email -->
             <div class="form-group">
               <label for="editUsername">Username</label>
               <input type="text" class="form-control" name="username" id="editUsername" required>
@@ -219,13 +224,24 @@
               <label for="editEmail">Email</label>
               <input type="email" class="form-control" name="email" id="editEmail" required>
             </div>
+            
+            <!-- Role Dropdown -->
             <div class="form-group">
-              <label for="editLatitude">Latitude</label>
-              <input type="text" class="form-control" name="latitude" id="editLatitude">
+              <label for="editRole">Role</label>
+              <select class="form-control" name="role" id="editRole" required>
+                <option value="User">User</option>
+                <option value="Admin">Admin</option>
+              </select>
             </div>
+            
+            <!-- Hidden Latitude/Longitude Fields -->
+            <input type="hidden" name="latitude" id="editLatitude">
+            <input type="hidden" name="longitude" id="editLongitude">
+            
+            <!-- Map Container -->
             <div class="form-group">
-              <label for="editLongitude">Longitude</label>
-              <input type="text" class="form-control" name="longitude" id="editLongitude">
+              <label for="editMap">Update Location</label>
+              <div id="editMap" style="height: 300px;"></div>
             </div>
           </div>
           <div class="modal-footer">
@@ -236,6 +252,7 @@
       </form>
     </div>
   </div>
+  
 
   <div class="modal fade" id="deleteUserModal" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -289,70 +306,67 @@
   <script type="text/javascript" src="https://cdn.datatables.net/v/bs4/dt-1.10.25/datatables.min.js"></script>
   <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
 
   <script>
     var uploadAttemptsData = <%- JSON.stringify(uploadAttempts) %>;
   </script>
   
   <script>
-    document.querySelectorAll('.btn-edit').forEach(button => {
-      button.addEventListener('click', function() {
-        const userId = this.getAttribute('data-user-id');
-        const row = document.querySelector('tr[data-user-id="' + userId + '"]');
-        const username = row.getAttribute('data-username');
-        const email = row.getAttribute('data-email');
-        const latitude = row.getAttribute('data-latitude');
-        const longitude = row.getAttribute('data-longitude');
-        
-        document.getElementById('editUserId').value = userId;
-        document.getElementById('editUsername').value = username;
-        document.getElementById('editEmail').value = email;
-        document.getElementById('editLatitude').value = latitude;
-        document.getElementById('editLongitude').value = longitude;
-      });
+  document.querySelectorAll('.btn-edit').forEach(button => {
+    button.addEventListener('click', function() {
+      const userId = this.getAttribute('data-user-id');
+      const row = document.querySelector('tr[data-user-id="' + userId + '"]');
+      const username = row.getAttribute('data-username');
+      const email = row.getAttribute('data-email');
+      const role = row.getAttribute('data-role') || 'User';
+      const latitude = row.getAttribute('data-latitude') || 0;
+      const longitude = row.getAttribute('data-longitude') || 0;
+      
+      document.getElementById('editUserId').value = userId;
+      document.getElementById('editUsername').value = username;
+      document.getElementById('editEmail').value = email;
+      document.getElementById('editRole').value = role;
+      document.getElementById('editLatitude').value = latitude;
+      document.getElementById('editLongitude').value = longitude;
+    });
+  });
+
+  $('#editUserModal').on('shown.bs.modal', function() {
+    var lat = parseFloat($('#editLatitude').val()) || 0;
+    var lng = parseFloat($('#editLongitude').val()) || 0;
+
+    var editMap = L.map('editMap').setView([lat, lng], 13);
+    
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      attribution: '© OpenStreetMap contributors'
+    }).addTo(editMap);
+    
+    var marker = L.marker([lat, lng], { draggable: true }).addTo(editMap);
+    
+    marker.on('dragend', function(e) {
+      var newLatLng = marker.getLatLng();
+      $('#editLatitude').val(newLatLng.lat);
+      $('#editLongitude').val(newLatLng.lng);
+    });
+
+    editMap.on('click', function(e) {
+      marker.setLatLng(e.latlng);
+      $('#editLatitude').val(e.latlng.lat);
+      $('#editLongitude').val(e.latlng.lng);
     });
     
-    document.querySelectorAll('.btn-delete').forEach(button => {
-      button.addEventListener('click', function() {
-        const userId = this.getAttribute('data-user-id');
-        document.getElementById('deleteUserId').value = userId;
-      });
-    });
+    $(this).data('leafletMap', editMap);
+  });
 
-    $(document).ready(function() {
-      $('#uploadsTable').DataTable({
-        order: [[3, 'desc']], 
-        responsive: true,
-        columnDefs: [
-          { responsivePriority: 1, targets: 0 },
-          { responsivePriority: 2, targets: 3 },
-          { responsivePriority: 3, targets: 6 }
-        ]
-      });
-    });
-
-    $(document).on('click', '.btn-view-images', function() {
-      const uploadId = $(this).data('upload-id');
-      const attempt = uploadAttemptsData.find(item => item.upload_id == uploadId);
-      $('#imagesContainer').html('');
-      if (attempt && attempt.images && attempt.images.length > 0) {
-        attempt.images.forEach(image => {
-          let imageHtml = `
-            <div class="col-md-4 mb-3">
-              <div class="card">
-                <img src="${image.file_path}" class="card-img-top" alt="Uploaded Image">
-                <div class="card-body p-2">
-                  <p class="card-text text-center">Corn Count: ${image.corn_count !== null ? image.corn_count : 'N/A'}</p>
-                </div>
-              </div>
-            </div>
-          `;
-          $('#imagesContainer').append(imageHtml);
-        });
-      } else {
-        $('#imagesContainer').html('<p>No images available for this upload attempt.</p>');
-      }
-    });
+  $('#editUserModal').on('hidden.bs.modal', function() {
+    var map = $(this).data('leafletMap');
+    if (map) {
+      map.remove();
+      $(this).removeData('leafletMap');
+    }
+  });
   </script>
 </body>
 </html>
