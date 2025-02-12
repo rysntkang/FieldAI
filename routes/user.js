@@ -46,12 +46,17 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
           }))
         );
       }
+      res.render('partials/user/modals/resultContent', {
+        attempts,
+        sectorId
+      });
     }
-    
+    else{
     res.render('partials/user/modals/resultContent', {
       attempts,
       sectorId
     });
+  }
   } catch (error) {
     console.error('Results error:', error);
     res.status(500).send('Error loading results');

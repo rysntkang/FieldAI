@@ -24,7 +24,7 @@ automatic_scaling:
 env_variables:
   GCLOUD_STORAGE_BUCKET: fieldai-imagebucket
   INSTANCE_UNIX_SOCKET: /cloudsql/fieldai-450606:asia-southeast1:fieldaisql
-  VERTEX_ENDPOINT: projects/fieldai-450606/locations/asia-southeast1/endpoints/6980214384563847168
+  VERTEX_ENDPOINT: projects/fieldai-450606/locations/asia-southeast1/endpoints/5882180500415578112
 
   DB_USER: sqladmin
   DB_PASS: Slc223311
