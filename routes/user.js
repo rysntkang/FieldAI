@@ -2,7 +2,7 @@ const express = require('express');
 const { upload, handleUploadErrors } = require('../middleware/upload');
 const { createSector, editSector, deleteSector } = require('../controllers/sectorController');
 const { handleImageUpload, getUploadAttempts, deleteUploadAttemptController } = require('../controllers/imageController');
-const { getDashboardData, updateUserSettings, getWeatherData } = require('../controllers/userController');
+const { getDashboardData, updateUserSettings, getWeatherData, deleteAccount } = require('../controllers/userController');
 
 const router = express.Router();
 
@@ -124,5 +124,7 @@ router.get('/user/weather', ensureAuthenticated, async (req, res) => {
     res.status(500).json({ error: 'Error fetching weather data' });
   }
 });
+
+router.post('/user/deleteAccount', ensureAuthenticated, deleteAccount);
 
 module.exports = router;

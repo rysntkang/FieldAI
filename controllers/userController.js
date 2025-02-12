@@ -1,6 +1,6 @@
 const axios = require('axios');
 const bcryptjs = require('bcryptjs');
-const { findUserByEmail, findUserByUsername, updateUser } = require('../models/userModel');
+const { findUserByEmail, findUserByUsername, updateUser, deleteUser } = require('../models/userModel');
 const { getSectorsByUserId } = require('../models/sectorModel');
 
 const getWeatherData = async (req) => {
@@ -119,7 +119,24 @@ const updateUserSettings = async (req, res) => {
   }
 };
 
+const deleteAccount = async (req, res) => {
+  const userId = req.session.user.user_id;
+  try {
+    await deleteUser(userId);
+    // Destroy the session after deletion:
+    req.session.destroy((err) => {
+      if (err) {
+        console.error('Error destroying session after account deletion:', err);
+        return res.redirect('/user/settings?error=An error occurred while deleting your account.');
+      }
+      // Optionally, you might clear a cookie here if needed.
+      res.redirect('/login?success=Account deleted successfully.');
+    });
+  } catch (error) {
+    console.error('Error deleting account:', error);
+    return res.redirect('/user/settings?error=Error deleting account');
+  }
+};
 
 
-
-module.exports = { getDashboardData, updateUserSettings, getWeatherData };
+module.exports = { getDashboardData, updateUserSettings, getWeatherData, deleteAccount };
