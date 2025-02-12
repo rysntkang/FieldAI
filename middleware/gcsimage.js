@@ -4,7 +4,7 @@ const bucketName = process.env.GCLOUD_STORAGE_BUCKET;
 const options = {
   version: 'v4',
   action: 'read',
-  expires: Date.now() + 15 * 60 * 1000, // 15 minutes
+  expires:Math.floor(new Date().getTime() / 1000) + 15 * 60,
 };
 
 async function getSignedUrl(fileName) {
