@@ -34,8 +34,6 @@ router.get('/results/:sectorId', ensureAuthenticated, async (req, res) => {
     const sectorId = req.params.sectorId;
     const attempts = await getUploadAttempts(sectorId);
 
-    console.log(attempts);
-
     if (process.env.INSTANCE_UNIX_SOCKET){
       const getSignedUrl = require('../middleware/gcsimage');
       for (const attempt of attempts) {
@@ -101,7 +99,7 @@ router.get('/upload', ensureAuthenticated, (req, res) => {
   }
 });
 
-router.delete('/user/upload-attempt/:uploadId', ensureAuthenticated, deleteUploadAttemptController);
+router.delete('/user/deleteAttempt/:uploadId', ensureAuthenticated, deleteUploadAttemptController);
 
 router.post('/upload/image', 
   ensureAuthenticated, 

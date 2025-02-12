@@ -137,16 +137,14 @@ const deleteUploadAttemptController = async (req, res) => {
   try {
     const { uploadId } = req.params;
     await deleteUploadAttempt(uploadId);
-    return res.redirect(
-      '/user/dashboard?success=' + encodeURIComponent('Upload attempt deleted successfully')
-    );
+    return res.json({ success: true, message: 'Upload attempt deleted successfully' });
   } catch (error) {
     console.error("Error deleting upload attempt:", error);
-    return res.redirect(
-      '/user/dashboard?error=' + encodeURIComponent('Failed to delete upload attempt')
-    );
+    return res.status(500).json({ success: false, message: 'Failed to delete upload attempt' });
   }
 };
+
+
 
 module.exports = { 
   handleImageUpload, 
