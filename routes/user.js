@@ -101,7 +101,7 @@ router.get('/upload', ensureAuthenticated, (req, res) => {
   }
 });
 
-router.delete('/upload-attempt/:uploadId', ensureAuthenticated, deleteUploadAttemptController);
+router.delete('/user/upload-attempt/:uploadId', ensureAuthenticated, deleteUploadAttemptController);
 
 router.post('/upload/image', 
   ensureAuthenticated, 
