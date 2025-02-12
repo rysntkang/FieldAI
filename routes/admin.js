@@ -37,6 +37,7 @@ router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
       limit: uploadLimit,
       offset: uploadOffset
     });
+    if(provess.env.INSTANCE_UNIX_SOCKET){
     const getSignedUrl = require('../middleware/gcsimage');
       for (const attempt of uploadAttempts) {
         attempt.images = await Promise.all(
@@ -46,6 +47,7 @@ router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
           }))
         );
       }
+    }
     res.render('pages/admin/dashboard', { 
       users,
       uploadAttempts,
