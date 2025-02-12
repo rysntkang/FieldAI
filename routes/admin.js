@@ -37,7 +37,15 @@ router.get('/admin/dashboard', ensureAuthenticated, async (req, res) => {
       limit: uploadLimit,
       offset: uploadOffset
     });
-
+    const getSignedUrl = require('../middleware/gcsimage');
+      for (const attempt of uploadAttempts) {
+        attempt.images = await Promise.all(
+          attempt.images.map(async (image) => ({
+            ...image,
+            file_path: await getSignedUrl(image.file_path), // Replace file_path with signed URL
+          }))
+        );
+      }
     res.render('pages/admin/dashboard', { 
       users,
       uploadAttempts,
