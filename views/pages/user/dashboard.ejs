@@ -716,7 +716,6 @@
       }
     }
 
-    // Delete Sector Button Handler with error redirection
     document.getElementById('sectors-container').addEventListener('click', (e) => {
       const deleteBtn = e.target.closest('.delete-sector-btn');
       if (deleteBtn) {
@@ -744,7 +743,6 @@
         return;
       }
     });
-
 
     document.getElementById('resultsModal').addEventListener('click', function(e) {
       const deleteAttemptBtn = e.target.closest('.delete-attempt-btn');
