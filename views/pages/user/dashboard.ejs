@@ -778,6 +778,22 @@
         }
       }
     });
+
+    document.getElementById('imageInput').addEventListener('change', function (e) {
+    const files = e.target.files;
+    let labelText = 'Choose files';
+    
+    if (files.length === 1) {
+      labelText = files[0].name;  // or '1 file selected'
+    } else if (files.length > 1) {
+      labelText = files.length + ' files selected';
+    }
+    
+    const label = this.nextElementSibling;
+    if (label) {
+      label.textContent = labelText;
+    }
+  });
   </script>
 </body>
 </html>

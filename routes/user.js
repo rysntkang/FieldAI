@@ -8,7 +8,7 @@ const router = express.Router();
 
 const ensureAuthenticated = (req, res, next) => {
   if (req.session?.user) return next();
-  res.redirect('/login');
+  res.redirect('/login?error=' + encodeURIComponent('Please login to access functionalities.'));
 };
 
 router.get('/user/dashboard', ensureAuthenticated, async (req, res) => {
