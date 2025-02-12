@@ -12,6 +12,12 @@ const registerUser = async (req, res) => {
     return res.redirect('/register?error=' + encodeURIComponent('Location missing. Please ensure location is enabled by refreshing.'));
   }
 
+  if (username.trim().length < 5) {
+    return res.redirect(
+      '/register?error=' + encodeURIComponent('Username must be at least 5 characters long.')
+    );
+  }
+
   if (password.length < 6) {
     return res.redirect(
       '/register?error=' + encodeURIComponent('Password must be at least 6 characters long.')

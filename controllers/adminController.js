@@ -113,7 +113,7 @@ const updateUserSettings = async (req, res) => {
   // Validate username length
   if (username.trim().length < 5) {
     return res.redirect(
-      '/admin/dashboard?error=' + encodeURIComponent('Username must be at least 3 characters long.')
+      '/admin/dashboard?error=' + encodeURIComponent('Username must be at least 5 characters long.')
     );
   }
 
