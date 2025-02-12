@@ -117,12 +117,6 @@ const updateUserSettings = async (req, res) => {
     );
   }
 
-  if (password.length < 6) {
-    return res.redirect(
-      '/admin/dashboard?error=' + encodeURIComponent('Password must be at least 6 characters long.')
-    );
-  }
-
   // Validate role – only allow 'User' or 'Admin'
   if (role !== 'User' && role !== 'Admin') {
     return res.redirect(

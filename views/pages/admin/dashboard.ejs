@@ -314,24 +314,12 @@
   </script>
   
   <script>
-  document.querySelectorAll('.btn-edit').forEach(button => {
-    button.addEventListener('click', function() {
-      const userId = this.getAttribute('data-user-id');
-      const row = document.querySelector('tr[data-user-id="' + userId + '"]');
-      const username = row.getAttribute('data-username');
-      const email = row.getAttribute('data-email');
-      const role = row.getAttribute('data-role') || 'User';
-      const latitude = row.getAttribute('data-latitude') || 0;
-      const longitude = row.getAttribute('data-longitude') || 0;
-      
-      document.getElementById('editUserId').value = userId;
-      document.getElementById('editUsername').value = username;
-      document.getElementById('editEmail').value = email;
-      document.getElementById('editRole').value = role;
-      document.getElementById('editLatitude').value = latitude;
-      document.getElementById('editLongitude').value = longitude;
+    document.querySelectorAll('.btn-delete').forEach(button => {
+      button.addEventListener('click', function() {
+        const userId = this.getAttribute('data-user-id');
+        document.getElementById('deleteUserId').value = userId;
+      });
     });
-  });
 
   $('#editUserModal').on('shown.bs.modal', function() {
     var lat = parseFloat($('#editLatitude').val()) || 0;
