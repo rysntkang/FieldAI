@@ -20,8 +20,7 @@ runtime_config:
 automatic_scaling:
   min_num_instances: 1
   max_num_instances: 5
-resources:
-  memory_gb: 6.5
+
 
 env_variables:
   GCLOUD_STORAGE_BUCKET: fieldai-imagebucket
