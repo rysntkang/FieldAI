@@ -60,16 +60,16 @@ const updateUserSettings = async (req, res) => {
     );
   }
 
-  if (username.trim().length < 5) {
-    return res.redirect(
-      '/user/settings?error=' + encodeURIComponent('Username must be at least 5 characters long.')
-    );
-  }
+  if (password) {
+    if (password.length < 6) {
+      return res.redirect(
+        '/user/settings?error=' + encodeURIComponent('Password must be at least 6 characters long.')
+      );
+    }
 
-  if (password.length < 6) {
-    return res.redirect(
-      '/user/settings?error=' + encodeURIComponent('Password must be at least 6 characters long.')
-    );
+    if (password !== confirmPassword) {
+      return res.redirect('/user/settings?error=Passwords do not match');
+    }
   }
 
   const latNum = parseFloat(latitude);
