@@ -64,11 +64,14 @@ const addUser = async (req, res) => {
 
         const hashedPassword = await bcryptjs.hash(password, 10);
 
-        // Use the correct variable names: latitude and longitude
         const result = await createUser(email, username, hashedPassword, role, latitude, longitude);
         if (result) {
+            const successMessage = role === 'Admin' 
+                ? 'Admin user added successfully.' 
+                : 'User added successfully.';
+
             return res.redirect(
-                '/admin/dashboard?success=' + encodeURIComponent('User added successfully.')
+                `/admin/dashboard?success=${encodeURIComponent(successMessage)}`
             );
         } else {
             return res.redirect(
