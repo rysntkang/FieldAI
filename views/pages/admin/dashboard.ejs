@@ -35,6 +35,9 @@
       margin-left: 250px;
       padding: 20px;
     }
+    h3[id] {
+    scroll-margin-top: 80px; /* Adjust based on your sidebar height */
+  }
   </style>
 </head>
 <body>
@@ -60,7 +63,7 @@
       </div>
     <% } %>
 
-    <h3>User List</h3>
+    <h3 id="userList">User List</h3>
     <form method="GET" action="/admin/dashboard" class="form-inline mb-3">
       <div class="form-group mr-2">
         <label for="search" class="mr-2">Search Username:</label>
@@ -124,7 +127,7 @@
     </table>
 
     <!-- Upload Attempts Section -->
-    <h3 class="mt-5">Upload Attempts</h3>
+    <h3 id="uploadAttempts" class="mt-5">Upload Attempts</h3>
     <!-- NEW: Upload Attempts Filtering Form -->
     <form method="GET" action="/admin/dashboard" class="form-inline mb-3">
       <!-- Preserve the users filtering parameters as hidden inputs -->
